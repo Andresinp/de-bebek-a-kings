@@ -127,8 +127,29 @@ tr:last-child td{border-bottom:0}
 details summary{cursor:pointer;color:var(--muted);font-size:.9rem}
 details ul{margin:6px 0 0;padding-left:1.1em}
 #pistas td i b{font-style:normal;font-weight:700}
+/* time markers (A) */
+.tm{background:var(--warn-soft);border-radius:4px;padding:1px 6px;font-weight:700;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.tm i{white-space:nowrap;font-weight:400;font-size:.8em;color:var(--warn)}
+/* Turkish notes */
+.tr{border-left:4px solid var(--warn);display:grid;gap:8px}
+.tr .eyebrow{color:var(--warn)}
+.tr ul{margin:0;padding:0;list-style:none;display:grid;gap:4px}
+/* flip cards (H) */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.flip{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;cursor:pointer;perspective:900px}
+.flip .in{display:grid;transition:transform .5s;transform-style:preserve-3d;height:100%}
+.flip.on .in{transform:rotateY(180deg)}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:8px;align-content:start;min-height:170px}
+.face.back{transform:rotateY(180deg);border-color:var(--ink)}
+.face .en{font-weight:700}
+.face .trl{color:var(--muted);font-style:italic}
+.face .es{font-family:var(--display);font-size:1.2rem;font-weight:500;line-height:1.35}
+.face .es b{font-weight:800}
+.face small{color:var(--muted);font-size:.8rem}
+.flip:focus-visible{outline:2px solid var(--imp);outline-offset:3px;border-radius:12px}
 footer{margin-top:40px;color:var(--muted);font-size:.85rem}
-@media (max-width:520px){body{font-size:16px}.q{padding-left:40px}.q::before{left:13px}.bar{display:none}}
+section,.story,.list{grid-template-columns:minmax(0,1fr)}
+@media (max-width:520px){body{font-size:16px}.fill{white-space:normal}.q{padding-left:40px}.q::before{left:13px}.bar{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 html{scroll-behavior:smooth}
 </style>
@@ -136,7 +157,7 @@ html{scroll-behavior:smooth}
 <nav aria-label="Secciones">
   <div class="navin">
     <div class="links">
-      <a href="#guia">Guía</a><a href="#pistas">Pistas</a><a href="#elige">A · Elige</a><a href="#historias">B · Historias</a><a href="#antes">C · Antes/ahora</a><a href="#cuando">D · Estaba… cuando</a><a href="#corrige">E · Corrige</a><a href="#frases">F · Frases</a><a href="#habla">G · Habla</a>
+      <a href="#guia">Guía</a><a href="#pistas">Pistas</a><a href="#elige">A · Elige</a><a href="#historias">B · Historias</a><a href="#antes">C · Antes/ahora</a><a href="#cuando">D · Estaba… cuando</a><a href="#corrige">E · Corrige</a><a href="#frases">F · Frases</a><a href="#habla">G · Habla</a><a href="#tarjetas">H · Tarjetas</a>
     </div>
     <div class="score" aria-live="polite"><div class="bar"><i id="barfill"></i></div><span id="score">0 / 0</span></div>
   </div>
@@ -200,6 +221,12 @@ html{scroll-behavior:smooth}
 <section id="pistas">
   <h2>Pistas · del inglés al español</h2>
   <p class="lead">Si piensas la frase en inglés, estas palabras te dicen qué tiempo usar. Ojo: el <i>simple past</i> inglés («I went», «I was») puede ser los dos. Ahí usa las preguntas de abajo.</p>
+  <div class="card tr" lang="tr">
+    <div class="eyebrow">Türkçe açıklama · Foto mu, video mu?</div>
+    <p><b class="imp">Foto = imperfecto.</b> Geçmişteki sahneyi anlatır: yer nasıldı, hava nasıldı, kim vardı, ne hissediyordun, hep ne yapardın. Fotoğrafa bakar gibi: her şey orada, ama hikâye ilerlemiyor. Türkçedeki <i>-iyordu</i> (ders çalışıyordum) ve alışkanlık bildiren <i>-irdi</i> (her yaz Bodrum'a giderdik) çoğunlukla imperfecto olur.</p>
+    <p><b class="ind">Video = indefinido.</b> Olan olayları sırayla anlatır: ne oldu, sonra ne oldu. Bir kere olan, bitmiş eylemler. Türkçedeki <i>-di</i> gibi: Dün Camden'a gittim, birden eski sevgilimi gördüm.</p>
+    <p><b>Dikkat:</b> Türkçede <i>-di</i> bazen fotoğraf olur. «Hava sıcaktı» = <b class="imp">Hacía</b> calor (imperfecto). Önemli olan ek değil, anlam: sahne mi, olay mı?</p>
+  </div>
   <div class="tablebox">
     <table>
       <thead><tr><th>En inglés…</th><th>En español</th><th>Ejemplo</th></tr></thead>
@@ -257,7 +284,7 @@ html{scroll-behavior:smooth}
 
 <section id="elige">
   <h2>A · Elige la forma correcta</h2>
-  <p class="lead">Toca el verbo correcto. El color te dice si es foto o vídeo, y debajo aparece el motivo.</p>
+  <p class="lead">Toca el verbo correcto. El color te dice si es foto o vídeo, y debajo aparece el motivo. Los <span class="tm">marcadores temporales</span> están resaltados, con su significado en inglés.</p>
   <div class="list" id="listA"></div>
 </section>
 
@@ -276,6 +303,16 @@ html{scroll-behavior:smooth}
 <section id="cuando">
   <h2>D · Estaba… cuando…</h2>
   <p class="lead">La primera parte es el fondo (imperfecto). La segunda es lo que interrumpe (indefinido). En la primera vale «estaba + gerundio» o el imperfecto simple.</p>
+  <div class="card tr" lang="tr">
+    <div class="eyebrow">Türkçe açıklama</div>
+    <p>Bu bölümde her cümlede geçmişte iki şey var:</p>
+    <ul>
+      <li><b class="imp">1. Arka plan</b>: o sırada devam eden eylem → <b class="imp">imperfecto</b> (<i>estaba estudiando</i> ya da <i>estudiaba</i>). Türkçedeki <i>-iyordum</i> ya da <i>-irken</i> gibi: <i>ders çalışıyordum / ders çalışırken</i>.</li>
+      <li><b class="ind">2. Araya giren olay</b>: birden olan, kısa eylem → <b class="ind">indefinido</b> (<i>sonó</i>). Türkçedeki <i>-di</i> gibi: <i>telefonum çaldı</i>.</li>
+    </ul>
+    <p><i><b class="imp">Estaba estudiando</b> en la biblioteca cuando <b class="ind">sonó</b> mi móvil.</i> = Kütüphanede ders çalışırken telefonum çaldı.</p>
+    <p><b>İpucu:</b> <i>cuando</i>'dan önceki kısım imperfecto, <i>cuando</i>'dan sonraki kısım indefinido.</p>
+  </div>
   <div class="card story" data-group="D"><div class="list" id="listD"></div></div>
 </section>
 
@@ -300,6 +337,12 @@ html{scroll-behavior:smooth}
   <h2>G · Habla</h2>
   <p class="lead">Responde en voz alta, de 30 segundos a un minuto. Primero el escenario, después lo que pasó.</p>
   <div class="talk" id="talkG"></div>
+</section>
+
+<section id="tarjetas">
+  <h2>H · Tarjetas: tradúcelo al español</h2>
+  <p class="lead">Lee la frase en inglés o en turco y dila en español en voz alta. Después toca la tarjeta para ver la traducción. Fíjate en el color: foto o vídeo.</p>
+  <div class="cards" id="cardsH"></div>
 </section>
 
 <footer>Nivel A2 · Pretérito indefinido e imperfecto · Estambul y Londres</footer>
@@ -337,28 +380,29 @@ function parse(tpl){
 
 /* A */
 const A=[
-"Ayer {fui|iba|0|a} a Camden con unas amigas.",
-"En Estambul, todos los domingos {desayuné|desayunaba|1|h} en Bebek con mi familia.",
+"[Ayer|yesterday] {fui|iba|0|a} a Camden con unas amigas.",
+"En Estambul, [todos los domingos|every Sunday] {desayuné|desayunaba|1|h} en Bebek con mi familia.",
 "El club de Ortaköy {fue|era|1|d} muy elegante y {tuvo|tenía|1|d} vistas al Bósforo.",
-"El lunes {tenía|tuve|1|a} mi primera clase en King's y me encantó.",
-"Cuando {fui|era|1|e} pequeña, {vivimos|vivíamos|1|e} en Nişantaşı.",
-"{Llovió|Llovía|1|d} mucho cuando {salí|salía|0|a} de la biblioteca.",
-"Anoche {conocí|conocía|0|a} a un chico italiano en un bar de Soho.",
-"El restaurante {estuvo|estaba|1|d} lleno, así que {esperábamos|esperamos|1|n} media hora.",
-"En verano, mis amigas y yo {fuimos|íbamos|1|h} a Bodrum cada fin de semana.",
-"El año pasado {iba|fui|1|n} a Bodrum tres veces.",
+"[El lunes|on Monday] {tenía|tuve|1|a} mi primera clase en King's y me encantó.",
+"[Cuando|when] {fui|era|1|e} pequeña, {vivimos|vivíamos|1|e} en Nişantaşı.",
+"{Llovió|Llovía|1|d} mucho [cuando|when] {salí|salía|0|a} de la biblioteca.",
+"[Anoche|last night] {conocí|conocía|0|a} a un chico italiano en un bar de Soho.",
+"El restaurante {estuvo|estaba|1|d} lleno, así que {esperábamos|esperamos|1|n} [media hora|half an hour].",
+"[En verano|in summer], mis amigas y yo {fuimos|íbamos|1|h} a Bodrum [cada fin de semana|every weekend].",
+"[El año pasado|last year] {iba|fui|1|n} a Bodrum [tres veces|three times].",
 "{Hizo|Hacía|1|d} frío y no {tuve|tenía|1|f} chaqueta.",
-"De repente, mi madre me {llamaba|llamó|1|i} desde Estambul.",
+"[De repente|suddenly], mi madre me {llamaba|llamó|1|i} desde Estambul.",
 "Mi residencia {estaba|estuvo|0|d} cerca del Strand.",
-"El viernes {fuimos|íbamos|0|a} a cenar a Mayfair y {pedíamos|pedimos|1|a} sushi.",
-"Cuando {viví|vivía|1|e} en Estambul, siempre {tomaba|tomé|0|h} el ferry a Kadıköy.",
+"[El viernes|on Friday] {fuimos|íbamos|0|a} a cenar a Mayfair y {pedíamos|pedimos|1|a} sushi.",
+"[Cuando|when] {viví|vivía|1|e} en Estambul, [siempre|always] {tomaba|tomé|0|h} el ferry a Kadıköy.",
 "{Estuve|Estaba|1|f} muy cansada, pero {fui|iba|0|a} a la fiesta igualmente.",
 "En la fiesta {había|hubo|0|d} mucha gente y la música {estaba|estuvo|0|d} muy alta.",
-"Mientras {esperé|esperaba|1|c} el metro, {vi|veía|0|i} a mi profesora de Historia.",
-"Mi abuela siempre me {decía|dijo|0|h}: «¡Abrígate, que en Londres hace frío!»",
-"En septiembre {me mudaba|me mudé|1|a} a Londres para estudiar en King's."
+"[Mientras|while] {esperé|esperaba|1|c} el metro, {vi|veía|0|i} a mi profesora de Historia.",
+"Mi abuela [siempre|always] me {decía|dijo|0|h}: «¡Abrígate, que en Londres hace frío!»",
+"[En septiembre|in September] {me mudaba|me mudé|1|a} a Londres para estudiar en King's."
 ];
-document.getElementById("listA").innerHTML=A.map(t=>`<div class="q"><div>${parse(t)}</div><div class="why"></div></div>`).join("");
+const tm=t=>t.replace(/\[([^|\]]+)\|([^\]]+)\]/g,'<span class="tm">$1 <i lang="en">($2)</i></span>');
+document.getElementById("listA").innerHTML=A.map(t=>`<div class="q"><div>${tm(parse(t))}</div><div class="why"></div></div>`).join("");
 
 /* B */
 const B=[
@@ -426,6 +470,26 @@ const G=[
 ];
 document.getElementById("talkG").innerHTML=G.map(([q,s])=>`<div class="card"><h3>${q}</h3><details><summary>Ideas para empezar</summary><ul>${s.map(x=>`<li>${x}</li>`).join("")}</ul></details></div>`).join("");
 
+/* H */
+const H=[
+["Yesterday I went to Camden with my friends.","Dün arkadaşlarımla Camden'a gittim.","Ayer <b class='ind'>fui</b> a Camden con mis amigas.","ind","Una acción concreta, ayer."],
+["When I was little, I lived in Nişantaşı.","Küçükken Nişantaşı'nda yaşıyordum.","Cuando <b class='imp'>era</b> pequeña, <b class='imp'>vivía</b> en Nişantaşı.","imp","Edad y época de la vida."],
+["Every summer we used to go to Bodrum.","Her yaz Bodrum'a giderdik.","Todos los veranos <b class='imp'>íbamos</b> a Bodrum.","imp","Costumbre: used to."],
+["It was cold and there were a lot of people.","Hava soğuktu ve çok insan vardı.","<b class='imp'>Hacía</b> frío y <b class='imp'>había</b> mucha gente.","imp","Descripción del escenario."],
+["I was studying when my phone rang.","Ders çalışırken telefonum çaldı.","<b class='imp'>Estaba estudiando</b> cuando <b class='ind'>sonó</b> mi móvil.","both","Fondo + lo que interrumpe."],
+["Suddenly I saw my ex.","Birden eski sevgilimi gördüm.","De repente <b class='ind'>vi</b> a mi ex.","ind","De repente → indefinido."],
+["Last night I met an Italian guy.","Dün gece İtalyan bir çocukla tanıştım.","Anoche <b class='ind'>conocí</b> a un chico italiano.","ind","Conocer por primera vez: conocí."],
+["While we were waiting for the table, my dad called me.","Biz masayı beklerken babam beni aradı.","Mientras <b class='imp'>esperábamos</b> la mesa, mi padre me <b class='ind'>llamó</b>.","both","Mientras + fondo; la llamada interrumpe."],
+["Last year I went to Bodrum three times.","Geçen yıl Bodrum'a üç kez gittim.","El año pasado <b class='ind'>fui</b> a Bodrum tres veces.","ind","Número de veces."],
+["In Istanbul I always took the ferry to Kadıköy.","İstanbul'da hep vapurla Kadıköy'e giderdim.","En Estambul siempre <b class='imp'>tomaba</b> el ferry a Kadıköy.","imp","Siempre → costumbre."],
+["I was very tired, but I went to the party anyway.","Çok yorgundum ama yine de partiye gittim.","<b class='imp'>Estaba</b> muy cansada, pero <b class='ind'>fui</b> a la fiesta igualmente.","both","Cómo me sentía + lo que hice."],
+["I didn't know anyone at the party.","Partide kimseyi tanımıyordum.","No <b class='imp'>conocía</b> a nadie en la fiesta.","imp","Un estado: conocía = I knew."],
+["The party was great.","Parti harikaydı.","La fiesta <b class='ind'>fue</b> genial.","ind","Valoración final de algo terminado."],
+["In September I moved to London.","Eylülde Londra'ya taşındım.","En septiembre <b class='ind'>me mudé</b> a Londres.","ind","Pasó una vez, en una fecha concreta."]
+];
+const HT={imp:"<span class='tag imp'>Imperfecto</span>",ind:"<span class='tag ind'>Indefinido</span>",both:"<span class='tag imp'>Imperfecto</span> <span class='tag ind'>Indefinido</span>"};
+document.getElementById("cardsH").innerHTML=H.map(([en,tr,es,t,why])=>`<button type="button" class="flip" aria-pressed="false"><span class="in"><span class="face front"><span class="en">${en}</span><span class="trl" lang="tr">${tr}</span><small>Toca para ver el español</small></span><span class="face back" aria-hidden="true"><span class="es">${es}</span><span>${HT[t]}</span><small>${why}</small></span></span></button>`).join("");
+
 /* logic */
 const norm=s=>s.toLowerCase().trim().replace(/\s+/g," ").replace(/^(yo|nosotras|nosotros|él|ella|ellos) /,"");
 const strip=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
@@ -433,6 +497,8 @@ const strip=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
 function whyLine(b,word){const [t,txt]=R[b.r];return `<div><span class="tag ${t}">${TNAME[t]}</span><span><b class="${t}">${word}</b> · ${txt}</span></div>`}
 
 document.addEventListener("click",e=>{
+  const fl=e.target.closest(".flip");
+  if(fl){const on=fl.classList.toggle("on");fl.setAttribute("aria-pressed",on);fl.querySelector(".front").setAttribute("aria-hidden",on);fl.querySelector(".back").setAttribute("aria-hidden",!on);return}
   const ob=e.target.closest(".ch button");
   if(ob){
     const id=ob.dataset.b,b=blanks[id],i=+ob.dataset.i,wrap=document.getElementById(id);
