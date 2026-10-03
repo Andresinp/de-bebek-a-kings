@@ -126,6 +126,7 @@ tr:last-child td{border-bottom:0}
 .talk .card{display:grid;gap:8px}
 details summary{cursor:pointer;color:var(--muted);font-size:.9rem}
 details ul{margin:6px 0 0;padding-left:1.1em}
+#pistas td i b{font-style:normal;font-weight:700}
 footer{margin-top:40px;color:var(--muted);font-size:.85rem}
 @media (max-width:520px){body{font-size:16px}.q{padding-left:40px}.q::before{left:13px}.bar{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
@@ -470,7 +471,7 @@ document.addEventListener("click",e=>{
     const pick=eb.dataset.v==="1";eState[k]=pick===good;
     eb.classList.add("picked",eState[k]?"good":"nope");
     const rv=q.querySelector(".reveal");
-    rv.innerHTML=(eState[k]?"<b style='color:var(--ok)'>¡Bien!</b> ":"<b style='color:var(--bad)'>No exactamente.</b> ")+(good?"La frase es correcta. ":"Corrección: "+fix+". ")+why;
+    rv.innerHTML=(eState[k]?"<b style='color:var(--ok)'>¡Bien!</b> ":"<b style='color:var(--bad)'>No exactamente.</b> ")+(good?"La frase es correcta. ":"Corrección: "+fix+" ")+why;
     rv.hidden=false;score();
   }
 });
