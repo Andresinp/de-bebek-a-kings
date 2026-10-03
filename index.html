@@ -134,19 +134,21 @@ details ul{margin:6px 0 0;padding-left:1.1em}
 .tr{border-left:4px solid var(--warn);display:grid;gap:8px}
 .tr .eyebrow{color:var(--warn)}
 .tr ul{margin:0;padding:0;list-style:none;display:grid;gap:4px}
-/* flip cards (H) */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-.flip{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;cursor:pointer;perspective:900px}
-.flip .in{display:grid;transition:transform .5s;transform-style:preserve-3d;height:100%}
+/* memory deck (C) */
+.deck{display:grid;gap:12px;max-width:520px}
+.deck-top{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+.flip{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;cursor:pointer;perspective:1000px;width:100%}
+.flip .in{display:grid;transition:transform .5s;transform-style:preserve-3d}
 .flip.on .in{transform:rotateY(180deg)}
-.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:8px;align-content:start;min-height:170px}
+.flip.instant .in{transition:none}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;display:grid;gap:12px;align-content:center;min-height:220px}
 .face.back{transform:rotateY(180deg);border-color:var(--ink)}
-.face .en{font-weight:700}
-.face .trl{color:var(--muted);font-style:italic}
-.face .es{font-family:var(--display);font-size:1.2rem;font-weight:500;line-height:1.35}
+.face .lang{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.face .en{font-family:var(--display);font-size:1.35rem;font-weight:700;line-height:1.3}
+.face .es{font-family:var(--display);font-size:1.35rem;font-weight:500;line-height:1.35}
 .face .es b{font-weight:800}
-.face small{color:var(--muted);font-size:.8rem}
-.flip:focus-visible{outline:2px solid var(--imp);outline-offset:3px;border-radius:12px}
+.face small{color:var(--muted);font-size:.82rem}
+.flip:focus-visible{outline:2px solid var(--imp);outline-offset:3px;border-radius:14px}
 footer{margin-top:40px;color:var(--muted);font-size:.85rem}
 section,.story,.list{grid-template-columns:minmax(0,1fr)}
 @media (max-width:520px){body{font-size:16px}.fill{white-space:normal}.q{padding-left:40px}.q::before{left:13px}.bar{display:none}}
@@ -157,7 +159,7 @@ html{scroll-behavior:smooth}
 <nav aria-label="Secciones">
   <div class="navin">
     <div class="links">
-      <a href="#guia">Guía</a><a href="#pistas">Pistas</a><a href="#elige">A · Elige</a><a href="#historias">B · Historias</a><a href="#antes">C · Antes/ahora</a><a href="#cuando">D · Estaba… cuando</a><a href="#corrige">E · Corrige</a><a href="#frases">F · Frases</a><a href="#habla">G · Habla</a><a href="#tarjetas">H · Tarjetas</a>
+      <a href="#guia">Guía</a><a href="#pistas">Pistas</a><a href="#elige">A · Elige</a><a href="#historias">B · Historias</a><a href="#tarjetas">C · Tarjetas</a><a href="#antes">D · Antes/ahora</a><a href="#cuando">E · Estaba… cuando</a><a href="#corrige">F · Corrige</a><a href="#frases">G · Frases</a><a href="#habla">H · Habla</a>
     </div>
     <div class="score" aria-live="polite"><div class="bar"><i id="barfill"></i></div><span id="score">0 / 0</span></div>
   </div>
@@ -225,7 +227,14 @@ html{scroll-behavior:smooth}
     <div class="eyebrow">Türkçe açıklama · Foto mu, video mu?</div>
     <p><b class="imp">Foto = imperfecto.</b> Geçmişteki sahneyi anlatır: yer nasıldı, hava nasıldı, kim vardı, ne hissediyordun, hep ne yapardın. Fotoğrafa bakar gibi: her şey orada, ama hikâye ilerlemiyor. Türkçedeki <i>-iyordu</i> (ders çalışıyordum) ve alışkanlık bildiren <i>-irdi</i> (her yaz Bodrum'a giderdik) çoğunlukla imperfecto olur.</p>
     <p><b class="ind">Video = indefinido.</b> Olan olayları sırayla anlatır: ne oldu, sonra ne oldu. Bir kere olan, bitmiş eylemler. Türkçedeki <i>-di</i> gibi: Dün Camden'a gittim, birden eski sevgilimi gördüm.</p>
-    <p><b>Dikkat:</b> Türkçede <i>-di</i> bazen fotoğraf olur. «Hava sıcaktı» = <b class="imp">Hacía</b> calor (imperfecto). Önemli olan ek değil, anlam: sahne mi, olay mı?</p>
+    <p><b>Dikkat:</b> Türkçede <i>-di</i> bazen fotoğraf olur. Bir şeyi <b>tarif ediyorsan</b>, yani sıfatlarla (<i>güzeldi, soğuktu, sıcaktı, kalabalıktı</i>) ya da <i>var / yok</i> ile (<i>vardı, yoktu</i>), İspanyolcada <b class="imp">imperfecto</b> kullanılır:</p>
+    <ul>
+      <li>«Hava soğuktu» = <b class="imp">Hacía</b> frío.</li>
+      <li>«Restoran çok güzeldi» = El restaurante <b class="imp">era</b> muy bonito.</li>
+      <li>«Çok insan vardı» = <b class="imp">Había</b> mucha gente.</li>
+      <li>«Param yoktu» = No <b class="imp">tenía</b> dinero.</li>
+    </ul>
+    <p>Önemli olan ek değil, anlam: sahne mi, olay mı?</p>
   </div>
   <div class="tablebox">
     <table>
@@ -294,14 +303,25 @@ html{scroll-behavior:smooth}
   <div id="storiesB" class="story"></div>
 </section>
 
+<section id="tarjetas">
+  <h2>C · Tarjetas de memoria</h2>
+  <p class="lead">Sale una frase en inglés o en turco. Dila en español en voz alta y toca la tarjeta para ver la respuesta. Si la sabías, sale del mazo. Si no, vuelve a salir más tarde.</p>
+  <div class="deck">
+    <div class="deck-top"><span id="deckLeft"></span><button type="button" class="btn ghost" id="deckReset">Barajar de nuevo</button></div>
+    <button type="button" class="flip" id="card" aria-pressed="false"><span class="in"><span class="face front"><span class="lang" id="cLang"></span><span class="en" id="cQ"></span><small>Toca para ver el español</small></span><span class="face back" aria-hidden="true"><span class="es" id="cA"></span><span id="cT"></span><small id="cW"></small></span></span></button>
+    <div class="actions" id="deckBtns" hidden><button type="button" class="btn ghost" data-deck="again">Otra vez</button><button type="button" class="btn" data-deck="ok">¡La sabía!</button></div>
+    <div class="card" id="deckDone" hidden><h3>¡Mazo terminado!</h3><p>Has repasado todas las tarjetas. Toca «Barajar de nuevo» para empezar otra vez.</p></div>
+  </div>
+</section>
+
 <section id="antes">
-  <h2>C · Antes en Estambul, ahora en Londres</h2>
+  <h2>D · Antes en Estambul, ahora en Londres</h2>
   <p class="lead">Todo lo que hacías antes, como costumbre, va en imperfecto.</p>
   <div class="card story" data-group="C"><div class="list" id="listC"></div></div>
 </section>
 
 <section id="cuando">
-  <h2>D · Estaba… cuando…</h2>
+  <h2>E · Estaba… cuando…</h2>
   <p class="lead">La primera parte es el fondo (imperfecto). La segunda es lo que interrumpe (indefinido). En la primera vale «estaba + gerundio» o el imperfecto simple.</p>
   <div class="card tr" lang="tr">
     <div class="eyebrow">Türkçe açıklama</div>
@@ -317,13 +337,13 @@ html{scroll-behavior:smooth}
 </section>
 
 <section id="corrige">
-  <h2>E · ¿Correcta o incorrecta?</h2>
+  <h2>F · ¿Correcta o incorrecta?</h2>
   <p class="lead">Decide y luego mira la explicación.</p>
   <div class="list" id="listE"></div>
 </section>
 
 <section id="frases">
-  <h2>F · Frases salvavidas</h2>
+  <h2>G · Frases salvavidas</h2>
   <p class="lead">Memoriza estas frases. Con ellas puedes contar casi cualquier anécdota.</p>
   <div class="phr">
     <div class="card im"><h3 class="imp" style="margin-bottom:10px">El escenario</h3><ul>
@@ -334,15 +354,9 @@ html{scroll-behavior:smooth}
 </section>
 
 <section id="habla">
-  <h2>G · Habla</h2>
+  <h2>H · Habla</h2>
   <p class="lead">Responde en voz alta, de 30 segundos a un minuto. Primero el escenario, después lo que pasó.</p>
   <div class="talk" id="talkG"></div>
-</section>
-
-<section id="tarjetas">
-  <h2>H · Tarjetas: tradúcelo al español</h2>
-  <p class="lead">Lee la frase en inglés o en turco y dila en español en voz alta. Después toca la tarjeta para ver la traducción. Fíjate en el color: foto o vídeo.</p>
-  <div class="cards" id="cardsH"></div>
 </section>
 
 <footer>Nivel A2 · Pretérito indefinido e imperfecto · Estambul y Londres</footer>
@@ -470,25 +484,46 @@ const G=[
 ];
 document.getElementById("talkG").innerHTML=G.map(([q,s])=>`<div class="card"><h3>${q}</h3><details><summary>Ideas para empezar</summary><ul>${s.map(x=>`<li>${x}</li>`).join("")}</ul></details></div>`).join("");
 
-/* H */
+/* C · tarjetas */
 const H=[
-["Yesterday I went to Camden with my friends.","Dün arkadaşlarımla Camden'a gittim.","Ayer <b class='ind'>fui</b> a Camden con mis amigas.","ind","Una acción concreta, ayer."],
-["When I was little, I lived in Nişantaşı.","Küçükken Nişantaşı'nda yaşıyordum.","Cuando <b class='imp'>era</b> pequeña, <b class='imp'>vivía</b> en Nişantaşı.","imp","Edad y época de la vida."],
-["Every summer we used to go to Bodrum.","Her yaz Bodrum'a giderdik.","Todos los veranos <b class='imp'>íbamos</b> a Bodrum.","imp","Costumbre: used to."],
-["It was cold and there were a lot of people.","Hava soğuktu ve çok insan vardı.","<b class='imp'>Hacía</b> frío y <b class='imp'>había</b> mucha gente.","imp","Descripción del escenario."],
-["I was studying when my phone rang.","Ders çalışırken telefonum çaldı.","<b class='imp'>Estaba estudiando</b> cuando <b class='ind'>sonó</b> mi móvil.","both","Fondo + lo que interrumpe."],
-["Suddenly I saw my ex.","Birden eski sevgilimi gördüm.","De repente <b class='ind'>vi</b> a mi ex.","ind","De repente → indefinido."],
-["Last night I met an Italian guy.","Dün gece İtalyan bir çocukla tanıştım.","Anoche <b class='ind'>conocí</b> a un chico italiano.","ind","Conocer por primera vez: conocí."],
-["While we were waiting for the table, my dad called me.","Biz masayı beklerken babam beni aradı.","Mientras <b class='imp'>esperábamos</b> la mesa, mi padre me <b class='ind'>llamó</b>.","both","Mientras + fondo; la llamada interrumpe."],
-["Last year I went to Bodrum three times.","Geçen yıl Bodrum'a üç kez gittim.","El año pasado <b class='ind'>fui</b> a Bodrum tres veces.","ind","Número de veces."],
-["In Istanbul I always took the ferry to Kadıköy.","İstanbul'da hep vapurla Kadıköy'e giderdim.","En Estambul siempre <b class='imp'>tomaba</b> el ferry a Kadıköy.","imp","Siempre → costumbre."],
-["I was very tired, but I went to the party anyway.","Çok yorgundum ama yine de partiye gittim.","<b class='imp'>Estaba</b> muy cansada, pero <b class='ind'>fui</b> a la fiesta igualmente.","both","Cómo me sentía + lo que hice."],
-["I didn't know anyone at the party.","Partide kimseyi tanımıyordum.","No <b class='imp'>conocía</b> a nadie en la fiesta.","imp","Un estado: conocía = I knew."],
-["The party was great.","Parti harikaydı.","La fiesta <b class='ind'>fue</b> genial.","ind","Valoración final de algo terminado."],
-["In September I moved to London.","Eylülde Londra'ya taşındım.","En septiembre <b class='ind'>me mudé</b> a Londres.","ind","Pasó una vez, en una fecha concreta."]
+["Last Sunday we had breakfast in Kensington.","Geçen pazar Kensington'da kahvaltı yaptık.","El domingo pasado <b class='ind'>desayunamos</b> en Kensington.","ind","Un día concreto: el domingo pasado."],
+["When I was eight, I had a white cat.","Sekiz yaşındayken beyaz bir kedim vardı.","Cuando <b class='imp'>tenía</b> ocho años, <b class='imp'>tenía</b> un gato blanco.","imp","Edad + descripción."],
+["My grandmother used to make baklava every Sunday.","Babaannem her pazar baklava yapardı.","Mi abuela <b class='imp'>hacía</b> baklava todos los domingos.","imp","Costumbre: used to / -irdi."],
+["The museum was very big and there weren't many people.","Müze çok büyüktü ve fazla insan yoktu.","El museo <b class='imp'>era</b> muy grande y no <b class='imp'>había</b> mucha gente.","imp","Descripción: -dı con adjetivo y yoktu."],
+["I was walking along the Thames when it started to rain.","Thames kıyısında yürürken yağmur başladı.","<b class='imp'>Estaba caminando</b> junto al Támesis cuando <b class='ind'>empezó</b> a llover.","both","Fondo + lo que interrumpe."],
+["Yesterday I lost my Oyster card.","Dün Oyster kartımı kaybettim.","Ayer <b class='ind'>perdí</b> mi tarjeta Oyster.","ind","Pasó una vez, ayer."],
+["While my friends were dancing, I was talking to the DJ.","Arkadaşlarım dans ederken ben DJ ile konuşuyordum.","Mientras mis amigas <b class='imp'>bailaban</b>, yo <b class='imp'>hablaba</b> con el DJ.","imp","Dos acciones en curso a la vez."],
+["On Saturday I bought a dress in Covent Garden.","Cumartesi günü Covent Garden'dan bir elbise aldım.","El sábado <b class='ind'>compré</b> un vestido en Covent Garden.","ind","Un día concreto, una acción terminada."],
+["It was ten o'clock and I was very hungry.","Saat ondu ve çok açtım.","<b class='imp'>Eran</b> las diez y <b class='imp'>tenía</b> mucha hambre.","imp","La hora y cómo me sentía."],
+["I lived in Istanbul for eighteen years.","İstanbul'da on sekiz yıl yaşadım.","<b class='ind'>Viví</b> en Estambul dieciocho años.","ind","Un periodo cerrado: sé cuánto duró."],
+["We were watching a film when the power went out.","Film izliyorduk, birden elektrikler kesildi.","<b class='imp'>Estábamos viendo</b> una película cuando <b class='ind'>se fue</b> la luz.","both","Fondo + lo que interrumpe."],
+["I didn't have an umbrella, so I bought one.","Şemsiyem yoktu, o yüzden bir tane aldım.","No <b class='imp'>tenía</b> paraguas, así que <b class='ind'>compré</b> uno.","both","La situación + lo que hice."],
+["Last summer I visited my cousins in Izmir twice.","Geçen yaz İzmir'deki kuzenlerimi iki kez ziyaret ettim.","El verano pasado <b class='ind'>visité</b> a mis primos en Esmirna dos veces.","ind","Número de veces."],
+["As a child, I always wanted to live in London.","Çocukken hep Londra'da yaşamak isterdim.","De pequeña siempre <b class='imp'>quería</b> vivir en Londres.","imp","Un deseo de esa época."],
+["On Tuesday I woke up late and missed the bus.","Salı günü geç uyandım ve otobüsü kaçırdım.","El martes me <b class='ind'>desperté</b> tarde y <b class='ind'>perdí</b> el autobús.","ind","Acciones en orden: la historia avanza."],
+["The waiter was very friendly and the food was delicious.","Garson çok cana yakındı ve yemek çok lezzetliydi.","El camarero <b class='imp'>era</b> muy simpático y la comida <b class='imp'>estaba</b> buenísima.","imp","Descripción: -dı con adjetivo."],
+["Suddenly someone called out to me.","Birden biri bana seslendi.","De repente alguien me <b class='ind'>llamó</b>.","ind","De repente → indefinido."]
 ];
 const HT={imp:"<span class='tag imp'>Imperfecto</span>",ind:"<span class='tag ind'>Indefinido</span>",both:"<span class='tag imp'>Imperfecto</span> <span class='tag ind'>Indefinido</span>"};
-document.getElementById("cardsH").innerHTML=H.map(([en,tr,es,t,why])=>`<button type="button" class="flip" aria-pressed="false"><span class="in"><span class="face front"><span class="en">${en}</span><span class="trl" lang="tr">${tr}</span><small>Toca para ver el español</small></span><span class="face back" aria-hidden="true"><span class="es">${es}</span><span>${HT[t]}</span><small>${why}</small></span></span></button>`).join("");
+let deck=[];
+const $=id=>document.getElementById(id), card=$("card");
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function newDeck(){deck=shuffle(H.map((_,k)=>({k,tr:Math.random()<.5})));showCard()}
+function setFlip(on){card.classList.toggle("on",on);card.setAttribute("aria-pressed",on);card.querySelector(".front").setAttribute("aria-hidden",on);card.querySelector(".back").setAttribute("aria-hidden",!on);$("deckBtns").hidden=!on}
+function showCard(){
+  const done=!deck.length;card.hidden=done;$("deckDone").hidden=!done;
+  $("deckLeft").textContent=done?`0 de ${H.length} por repasar`:`${deck.length} de ${H.length} por repasar`;
+  if(done){$("deckBtns").hidden=true;return}
+  card.classList.add("instant");setFlip(false);
+  const c=deck[0],[en,tr,es,t,why]=H[c.k];
+  $("cLang").textContent=c.tr?"Türkçe":"English";$("cQ").textContent=c.tr?tr:en;$("cQ").lang=c.tr?"tr":"en";
+  $("cA").innerHTML=es;$("cT").innerHTML=HT[t];$("cW").textContent=why;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>card.classList.remove("instant")));
+}
+card.addEventListener("click",()=>setFlip(!card.classList.contains("on")));
+$("deckBtns").addEventListener("click",e=>{const b=e.target.closest("[data-deck]");if(!b)return;const c=deck.shift();if(b.dataset.deck==="again"){c.tr=Math.random()<.5;deck.push(c)}showCard()});
+$("deckReset").addEventListener("click",newDeck);
+newDeck();
 
 /* logic */
 const norm=s=>s.toLowerCase().trim().replace(/\s+/g," ").replace(/^(yo|nosotras|nosotros|él|ella|ellos) /,"");
@@ -497,8 +532,6 @@ const strip=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
 function whyLine(b,word){const [t,txt]=R[b.r];return `<div><span class="tag ${t}">${TNAME[t]}</span><span><b class="${t}">${word}</b> · ${txt}</span></div>`}
 
 document.addEventListener("click",e=>{
-  const fl=e.target.closest(".flip");
-  if(fl){const on=fl.classList.toggle("on");fl.setAttribute("aria-pressed",on);fl.querySelector(".front").setAttribute("aria-hidden",on);fl.querySelector(".back").setAttribute("aria-hidden",!on);return}
   const ob=e.target.closest(".ch button");
   if(ob){
     const id=ob.dataset.b,b=blanks[id],i=+ob.dataset.i,wrap=document.getElementById(id);
