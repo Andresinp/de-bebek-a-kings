@@ -136,7 +136,11 @@ details ul{margin:6px 0 0;padding-left:1.1em}
 .tr ul{margin:0;padding:0;list-style:none;display:grid;gap:4px}
 /* memory deck (C) */
 .deck{display:grid;gap:12px;max-width:520px}
-.deck-top{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+.deck-nav,.deck-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#dPos{color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+.btn:disabled{opacity:.35;cursor:default}
+.mk{font-size:.75rem;font-weight:700;padding:1px 8px;border-radius:999px;justify-self:start}
+.mk.ok{background:var(--ok-soft);color:var(--ok)} .mk.no{background:var(--bad-soft);color:var(--bad)}
 .flip{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;cursor:pointer;perspective:1000px;width:100%}
 .flip .in{display:grid;transition:transform .5s;transform-style:preserve-3d}
 .flip.on .in{transform:rotateY(180deg)}
@@ -305,12 +309,19 @@ html{scroll-behavior:smooth}
 
 <section id="tarjetas">
   <h2>C · Tarjetas de memoria</h2>
-  <p class="lead">Sale una frase en inglés o en turco. Dila en español en voz alta y toca la tarjeta para ver la respuesta. Si la sabías, sale del mazo. Si no, vuelve a salir más tarde.</p>
-  <div class="deck">
-    <div class="deck-top"><span id="deckLeft"></span><button type="button" class="btn ghost" id="deckReset">Barajar de nuevo</button></div>
+  <p class="lead">Sale una frase en inglés o en turco. Dila en español en voz alta y toca la tarjeta para ver la respuesta. Muévete con las flechas (o desliza en el móvil). Marca si la sabías: al final puedes repasar solo las que fallaste.</p>
+  <div class="deck" id="deck">
+    <div class="deck-nav">
+      <button type="button" class="btn ghost" id="dPrev" aria-label="Tarjeta anterior">‹ Anterior</button>
+      <span id="dPos" aria-live="polite"></span>
+      <button type="button" class="btn ghost" id="dNext" aria-label="Tarjeta siguiente">Siguiente ›</button>
+    </div>
     <button type="button" class="flip" id="card" aria-pressed="false"><span class="in"><span class="face front"><span class="lang" id="cLang"></span><span class="en" id="cQ"></span><small>Toca para ver el español</small></span><span class="face back" aria-hidden="true"><span class="es" id="cA"></span><span id="cT"></span><small id="cW"></small></span></span></button>
-    <div class="actions" id="deckBtns" hidden><button type="button" class="btn ghost" data-deck="again">Otra vez</button><button type="button" class="btn" data-deck="ok">¡La sabía!</button></div>
-    <div class="card" id="deckDone" hidden><h3>¡Mazo terminado!</h3><p>Has repasado todas las tarjetas. Toca «Barajar de nuevo» para empezar otra vez.</p></div>
+    <div class="deck-foot">
+      <div class="actions" id="dMark"><span class="msg">¿La sabías?</span><button type="button" class="btn ghost" data-mark="no">Todavía no</button><button type="button" class="btn" data-mark="ok">¡Sí!</button></div>
+      <span class="msg" id="dTally"></span>
+    </div>
+    <div class="card" id="deckDone" hidden><h3>¡Mazo terminado!</h3><p id="doneTxt"></p><div class="actions"><button type="button" class="btn" id="dMiss">Repasar las que fallé</button><button type="button" class="btn ghost" id="dAll">Barajar todo de nuevo</button></div></div>
   </div>
 </section>
 
@@ -486,44 +497,61 @@ document.getElementById("talkG").innerHTML=G.map(([q,s])=>`<div class="card"><h3
 
 /* C · tarjetas */
 const H=[
-["Last Sunday we had breakfast in Kensington.","Geçen pazar Kensington'da kahvaltı yaptık.","El domingo pasado <b class='ind'>desayunamos</b> en Kensington.","ind","Un día concreto: el domingo pasado."],
-["When I was eight, I had a white cat.","Sekiz yaşındayken beyaz bir kedim vardı.","Cuando <b class='imp'>tenía</b> ocho años, <b class='imp'>tenía</b> un gato blanco.","imp","Edad + descripción."],
-["My grandmother used to make baklava every Sunday.","Babaannem her pazar baklava yapardı.","Mi abuela <b class='imp'>hacía</b> baklava todos los domingos.","imp","Costumbre: used to / -irdi."],
-["The museum was very big and there weren't many people.","Müze çok büyüktü ve fazla insan yoktu.","El museo <b class='imp'>era</b> muy grande y no <b class='imp'>había</b> mucha gente.","imp","Descripción: -dı con adjetivo y yoktu."],
-["I was walking along the Thames when it started to rain.","Thames kıyısında yürürken yağmur başladı.","<b class='imp'>Estaba caminando</b> junto al Támesis cuando <b class='ind'>empezó</b> a llover.","both","Fondo + lo que interrumpe."],
-["Yesterday I lost my Oyster card.","Dün Oyster kartımı kaybettim.","Ayer <b class='ind'>perdí</b> mi tarjeta Oyster.","ind","Pasó una vez, ayer."],
-["While my friends were dancing, I was talking to the DJ.","Arkadaşlarım dans ederken ben DJ ile konuşuyordum.","Mientras mis amigas <b class='imp'>bailaban</b>, yo <b class='imp'>hablaba</b> con el DJ.","imp","Dos acciones en curso a la vez."],
-["On Saturday I bought a dress in Covent Garden.","Cumartesi günü Covent Garden'dan bir elbise aldım.","El sábado <b class='ind'>compré</b> un vestido en Covent Garden.","ind","Un día concreto, una acción terminada."],
-["It was ten o'clock and I was very hungry.","Saat ondu ve çok açtım.","<b class='imp'>Eran</b> las diez y <b class='imp'>tenía</b> mucha hambre.","imp","La hora y cómo me sentía."],
-["I lived in Istanbul for eighteen years.","İstanbul'da on sekiz yıl yaşadım.","<b class='ind'>Viví</b> en Estambul dieciocho años.","ind","Un periodo cerrado: sé cuánto duró."],
-["We were watching a film when the power went out.","Film izliyorduk, birden elektrikler kesildi.","<b class='imp'>Estábamos viendo</b> una película cuando <b class='ind'>se fue</b> la luz.","both","Fondo + lo que interrumpe."],
-["I didn't have an umbrella, so I bought one.","Şemsiyem yoktu, o yüzden bir tane aldım.","No <b class='imp'>tenía</b> paraguas, así que <b class='ind'>compré</b> uno.","both","La situación + lo que hice."],
-["Last summer I visited my cousins in Izmir twice.","Geçen yaz İzmir'deki kuzenlerimi iki kez ziyaret ettim.","El verano pasado <b class='ind'>visité</b> a mis primos en Esmirna dos veces.","ind","Número de veces."],
-["As a child, I always wanted to live in London.","Çocukken hep Londra'da yaşamak isterdim.","De pequeña siempre <b class='imp'>quería</b> vivir en Londres.","imp","Un deseo de esa época."],
-["On Tuesday I woke up late and missed the bus.","Salı günü geç uyandım ve otobüsü kaçırdım.","El martes me <b class='ind'>desperté</b> tarde y <b class='ind'>perdí</b> el autobús.","ind","Acciones en orden: la historia avanza."],
-["The waiter was very friendly and the food was delicious.","Garson çok cana yakındı ve yemek çok lezzetliydi.","El camarero <b class='imp'>era</b> muy simpático y la comida <b class='imp'>estaba</b> buenísima.","imp","Descripción: -dı con adjetivo."],
-["Suddenly someone called out to me.","Birden biri bana seslendi.","De repente alguien me <b class='ind'>llamó</b>.","ind","De repente → indefinido."]
+["Last summer in Bodrum I met a boy from Ankara.","Geçen yaz Bodrum'da Ankaralı bir çocukla tanıştım.","El verano pasado en Bodrum <b class='ind'>conocí</b> a un chico de Ankara.","ind","Conocer a alguien por primera vez: conocí."],
+["He was tall, he had green eyes and he was a bit arrogant.","Uzun boyluydu, yeşil gözleri vardı ve biraz kibirliydi.","<b class='imp'>Era</b> alto, <b class='imp'>tenía</b> los ojos verdes y <b class='imp'>era</b> un poco creído.","imp","Descripción de una persona: la foto."],
+["He told me he was 22, but it was a lie.","Bana 22 yaşında olduğunu söyledi ama yalandı.","Me <b class='ind'>dijo</b> que <b class='imp'>tenía</b> 22 años, pero <b class='imp'>era</b> mentira.","both","Lo que dijo (vídeo) + su edad y la mentira (descripción)."],
+["Every Friday we used to have dinner in Arnavutköy.","Her cuma Arnavutköy'de akşam yemeği yerdik.","Todos los viernes <b class='imp'>cenábamos</b> en Arnavutköy.","imp","Costumbre: used to / -irdi."],
+["While we were having coffee in Bebek, Deniz told us some huge gossip.","Bebek'te kahve içerken Deniz bize büyük bir dedikodu anlattı.","Mientras <b class='imp'>tomábamos</b> café en Bebek, Deniz nos <b class='ind'>contó</b> un cotilleo enorme.","both","Mientras + fondo; el cotilleo es lo que pasó."],
+["My best friend was going out with my ex and she didn't tell me anything.","En yakın arkadaşım eski sevgilimle çıkıyordu ve bana hiçbir şey söylemedi.","Mi mejor amiga <b class='imp'>salía</b> con mi ex y no me <b class='ind'>dijo</b> nada.","both","Una situación que duraba + lo que (no) hizo."],
+["Yesterday I saw Can's story on Instagram and I understood everything.","Dün Can'ın Instagram hikâyesini gördüm ve her şeyi anladım.","Ayer <b class='ind'>vi</b> la story de Can en Instagram y lo <b class='ind'>entendí</b> todo.","ind","Ayer, dos acciones en orden."],
+["The party in Bodrum was full of people we didn't know.","Bodrum'daki parti tanımadığımız insanlarla doluydu.","La fiesta de Bodrum <b class='imp'>estaba</b> llena de gente que no <b class='imp'>conocíamos</b>.","imp","Descripción: doluydu → estaba llena."],
+["Suddenly my mum called and I told her I was at the library.","Birden annem aradı, ben de kütüphanede olduğumu söyledim.","De repente me <b class='ind'>llamó</b> mi madre y le <b class='ind'>dije</b> que <b class='imp'>estaba</b> en la biblioteca.","both","De repente → indefinido; dónde estaba → imperfecto."],
+["When I was sixteen, I had a crush on my friend's brother.","On altı yaşındayken arkadaşımın abisine aşıktım.","Cuando <b class='imp'>tenía</b> dieciséis años, <b class='imp'>estaba</b> enamorada del hermano de mi amiga.","imp","Edad + un sentimiento de esa época."],
+["Last night Ece texted me at three in the morning.","Dün gece Ece bana sabahın üçünde mesaj attı.","Anoche Ece me <b class='ind'>escribió</b> a las tres de la mañana.","ind","Anoche: pasó una vez."],
+["The boat was gorgeous, the sea was calm and everyone was dancing.","Tekne çok güzeldi, deniz sakindi ve herkes dans ediyordu.","El barco <b class='imp'>era</b> precioso, el mar <b class='imp'>estaba</b> tranquilo y todos <b class='imp'>bailaban</b>.","imp","Todo es escenario: güzeldi, sakindi → imperfecto."],
+["I waited for him for an hour, but he didn't show up.","Onu bir saat bekledim ama gelmedi.","Lo <b class='ind'>esperé</b> una hora, pero no <b class='ind'>vino</b>.","ind","Un periodo cerrado (una hora) + lo que pasó."],
+["We didn't know they were together.","Birlikte olduklarını bilmiyorduk.","No <b class='imp'>sabíamos</b> que <b class='imp'>estaban</b> juntos.","imp","Un estado: sabíamos = we knew."],
+["That night I found out the truth.","O gece gerçeği öğrendim.","Esa noche <b class='ind'>supe</b> la verdad.","ind","Saber en indefinido = found out."],
+["In Bodrum we had breakfast at eleven every morning and did nothing all day.","Bodrum'da her sabah on birde kahvaltı yapardık ve bütün gün hiçbir şey yapmazdık.","En Bodrum <b class='imp'>desayunábamos</b> a las once todas las mañanas y no <b class='imp'>hacíamos</b> nada en todo el día.","imp","La rutina de ese verano."],
+["He sent me a message, but I didn't answer.","Bana mesaj attı ama cevap vermedim.","Me <b class='ind'>mandó</b> un mensaje, pero no le <b class='ind'>contesté</b>.","ind","Dos acciones concretas."],
+["There was a really cute boy at the bar and all my friends were looking at him.","Barda çok yakışıklı bir çocuk vardı ve bütün arkadaşlarım ona bakıyordu.","En la barra <b class='imp'>había</b> un chico guapísimo y todas mis amigas lo <b class='imp'>miraban</b>.","imp","Vardı → había; acción de fondo → miraban."]
 ];
 const HT={imp:"<span class='tag imp'>Imperfecto</span>",ind:"<span class='tag ind'>Indefinido</span>",both:"<span class='tag imp'>Imperfecto</span> <span class='tag ind'>Indefinido</span>"};
-let deck=[];
 const $=id=>document.getElementById(id), card=$("card");
+let order=[],pos=0;
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function newDeck(){deck=shuffle(H.map((_,k)=>({k,tr:Math.random()<.5})));showCard()}
-function setFlip(on){card.classList.toggle("on",on);card.setAttribute("aria-pressed",on);card.querySelector(".front").setAttribute("aria-hidden",on);card.querySelector(".back").setAttribute("aria-hidden",!on);$("deckBtns").hidden=!on}
-function showCard(){
-  const done=!deck.length;card.hidden=done;$("deckDone").hidden=!done;
-  $("deckLeft").textContent=done?`0 de ${H.length} por repasar`:`${deck.length} de ${H.length} por repasar`;
-  if(done){$("deckBtns").hidden=true;return}
+function startDeck(keys){order=shuffle(keys.map(k=>({k,tr:Math.random()<.5,mark:null})));pos=0;render()}
+function setFlip(on){card.classList.toggle("on",on);card.setAttribute("aria-pressed",on);card.querySelector(".front").setAttribute("aria-hidden",on);card.querySelector(".back").setAttribute("aria-hidden",!on)}
+function render(){
+  const end=pos>=order.length;
+  card.hidden=end;$("dMark").hidden=end;$("deckDone").hidden=!end;
+  $("dPrev").disabled=pos===0;$("dNext").disabled=end;
+  const ok=order.filter(c=>c.mark==="ok").length,no=order.filter(c=>c.mark==="no").length;
+  $("dTally").textContent=`✓ ${ok} · ✗ ${no}`;
+  if(end){$("dPos").textContent=`${order.length} / ${order.length}`;
+    $("doneTxt").textContent=no?`Sabías ${ok} de ${order.length}. Te faltan ${no} por repasar.`:`¡Sabías ${ok} de ${order.length}!`;
+    $("dMiss").hidden=!no;return}
+  $("dPos").textContent=`${pos+1} / ${order.length}`;
   card.classList.add("instant");setFlip(false);
-  const c=deck[0],[en,tr,es,t,why]=H[c.k];
+  const c=order[pos],[en,tr,es,t,why]=H[c.k];
   $("cLang").textContent=c.tr?"Türkçe":"English";$("cQ").textContent=c.tr?tr:en;$("cQ").lang=c.tr?"tr":"en";
-  $("cA").innerHTML=es;$("cT").innerHTML=HT[t];$("cW").textContent=why;
+  $("cA").innerHTML=es+(c.mark?` <span class="mk ${c.mark}">${c.mark==="ok"?"✓ la sabías":"✗ a repasar"}</span>`:"");
+  $("cT").innerHTML=HT[t];$("cW").textContent=why;
   requestAnimationFrame(()=>requestAnimationFrame(()=>card.classList.remove("instant")));
 }
-card.addEventListener("click",()=>setFlip(!card.classList.contains("on")));
-$("deckBtns").addEventListener("click",e=>{const b=e.target.closest("[data-deck]");if(!b)return;const c=deck.shift();if(b.dataset.deck==="again"){c.tr=Math.random()<.5;deck.push(c)}showCard()});
-$("deckReset").addEventListener("click",newDeck);
-newDeck();
+const go=d=>{const n=pos+d;if(n<0||n>order.length)return;pos=n;render()};
+card.addEventListener("click",()=>{if(swiped){swiped=false;return}setFlip(!card.classList.contains("on"))});
+$("dPrev").addEventListener("click",()=>go(-1));
+$("dNext").addEventListener("click",()=>go(1));
+$("dMark").addEventListener("click",e=>{const b=e.target.closest("[data-mark]");if(!b)return;order[pos].mark=b.dataset.mark;go(1)});
+$("dMiss").addEventListener("click",()=>startDeck(order.filter(c=>c.mark==="no").map(c=>c.k)));
+$("dAll").addEventListener("click",()=>startDeck(H.map((_,k)=>k)));
+$("deck").addEventListener("keydown",e=>{if(e.key==="ArrowLeft"){go(-1);e.preventDefault()}else if(e.key==="ArrowRight"){go(1);e.preventDefault()}});
+let sx=null,sy=null,swiped=false;
+card.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+card.addEventListener("touchend",e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;sx=null;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){swiped=true;setTimeout(()=>swiped=false,400);go(dx<0?1:-1)}});
+startDeck(H.map((_,k)=>k));
 
 /* logic */
 const norm=s=>s.toLowerCase().trim().replace(/\s+/g," ").replace(/^(yo|nosotras|nosotros|él|ella|ellos) /,"");
