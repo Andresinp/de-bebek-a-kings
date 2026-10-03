@@ -1,0 +1,488 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>De Bebek a King's</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: one study column; sticky nav with live score; imperfecto = cobalt (la foto), indefinido = ochre (el vídeo) */
+:root{
+  --bg:#f2f5f8; --surface:#ffffff; --ink:#14212b; --muted:#566573; --line:#d6dee6;
+  --imp:#1f4fa6; --imp-soft:#e2eaf8;
+  --ind:#a85a12; --ind-soft:#f8eadb;
+  --ok:#1f7a49; --ok-soft:#ddf1e5; --bad:#b42a22; --bad-soft:#f9e1df; --warn:#8a6100; --warn-soft:#fbefcf;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f171d; --surface:#17222b; --ink:#e5edf3; --muted:#9aa9b5; --line:#2a3946;
+  --imp:#8db0f0; --imp-soft:#1b2c48; --ind:#eba463; --ind-soft:#3a2816;
+  --ok:#62c78f; --ok-soft:#163826; --bad:#f08178; --bad-soft:#3d1d1b; --warn:#e6b84f; --warn-soft:#3a2e12;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171d; --surface:#17222b; --ink:#e5edf3; --muted:#9aa9b5; --line:#2a3946;
+  --imp:#8db0f0; --imp-soft:#1b2c48; --ind:#eba463; --ind-soft:#3a2816;
+  --ok:#62c78f; --ok-soft:#163826; --bad:#f08178; --bad-soft:#3d1d1b; --warn:#e6b84f; --warn-soft:#3a2e12;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+.wrap{max-width:820px;margin:0 auto;padding-inline:16px;padding-block:0 64px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h2{font-size:1.7rem;font-weight:800}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+.imp{color:var(--imp)} .ind{color:var(--ind)}
+b.imp,b.ind{font-weight:700}
+
+/* nav */
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.navin{max-width:820px;margin:0 auto;padding:10px 16px;display:flex;gap:12px;align-items:center}
+.links{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.links a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:.9rem;padding:4px 10px;border-radius:999px}
+.links a:hover,.links a:focus-visible{background:var(--surface);color:var(--ink)}
+.score{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.bar{width:64px;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+
+/* hero */
+header{padding-block:40px 28px;display:grid;gap:16px}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(2.2rem,7vw,3.6rem);font-weight:800;letter-spacing:-.02em}
+.thesis{font-family:var(--display);font-size:clamp(1.2rem,3.4vw,1.55rem);font-weight:500;line-height:1.4;max-width:34ch}
+.thesis b{font-weight:800;padding:0 .15em;border-radius:4px}
+.thesis b.imp{background:var(--imp-soft)} .thesis b.ind{background:var(--ind-soft)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:.92rem;color:var(--muted)}
+.legend span{display:inline-flex;gap:8px;align-items:center}
+.dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+.dot.imp{background:var(--imp)} .dot.ind{background:var(--ind)}
+
+section{padding-block:36px 8px;display:grid;gap:18px;scroll-margin-top:60px}
+.lead{color:var(--muted);max-width:62ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+
+/* guide */
+.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.duo .card{display:grid;gap:10px;align-content:start}
+.duo .card.im{border-top:4px solid var(--imp)} .duo .card.in{border-top:4px solid var(--ind)}
+.duo ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.85rem;padding:2px 10px;border-radius:999px;border:1px solid var(--line)}
+.chip.imp{background:var(--imp-soft);border-color:transparent}
+.chip.ind{background:var(--ind-soft);border-color:transparent}
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.95rem}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+tr:last-child td{border-bottom:0}
+.tag{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:1px 7px;border-radius:4px;white-space:nowrap}
+.tag.imp{background:var(--imp-soft);color:var(--imp)} .tag.ind{background:var(--ind-soft);color:var(--ind)}
+
+/* exercises */
+.list{display:grid;gap:10px;counter-reset:q}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px 14px 48px;position:relative;counter-increment:q}
+.q::before{content:counter(q);position:absolute;left:16px;top:15px;font-family:var(--display);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.ch{display:inline-flex;gap:4px;vertical-align:baseline;margin:0 2px}
+.ch button{font:inherit;font-size:.95em;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:0 8px;cursor:pointer;line-height:1.6}
+.ch button:hover{border-color:var(--muted)}
+.ch button:focus-visible,.btn:focus-visible,input:focus-visible,.links a:focus-visible{outline:2px solid var(--imp);outline-offset:2px}
+.ch button.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+.ch.done button:not(.right){opacity:.35;cursor:default}
+.ch button.right.imp{background:var(--imp-soft);border-color:var(--imp);color:var(--imp);font-weight:700}
+.ch button.right.ind{background:var(--ind-soft);border-color:var(--ind);color:var(--ind);font-weight:700}
+.why{display:grid;gap:4px;margin-top:6px;font-size:.88rem;color:var(--muted)}
+.why:empty{display:none}
+.why div{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+
+.story{display:grid;gap:12px}
+.story p{line-height:2.3}
+.fill{white-space:nowrap}
+.hint{font-size:.8em;color:var(--muted);margin-right:3px}
+.fill input{font:inherit;color:var(--ink);background:var(--bg);border:0;border-bottom:2px solid var(--line);padding:0 4px;border-radius:4px 4px 0 0;min-width:5ch;max-width:100%}
+.fill input.ok.imp{background:var(--imp-soft);border-color:var(--imp);color:var(--imp);font-weight:700}
+.fill input.ok.ind{background:var(--ind-soft);border-color:var(--ind);color:var(--ind);font-weight:700}
+.fill input.bad{background:var(--bad-soft);border-color:var(--bad)}
+.fill input.tilde{background:var(--warn-soft);border-color:var(--warn)}
+.fill input.shown{border-color:var(--muted);color:var(--muted)}
+.fix{font-size:.82em;margin-left:4px;white-space:normal}
+.fix.bad{color:var(--bad)} .fix.tilde{color:var(--warn)}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:inherit;font-size:.92rem;font-weight:700;border-radius:8px;padding:6px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--surface)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.msg{font-size:.9rem;color:var(--muted);align-self:center}
+
+.e-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.e-btns button{font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:2px 10px;cursor:pointer}
+.e-btns button.picked.good{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+.e-btns button.picked.nope{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.reveal{margin-top:8px;font-size:.92rem}
+.reveal[hidden]{display:none}
+
+.phr{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.phr ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.phr li{padding:6px 10px;border-radius:6px}
+.phr .im li{background:var(--imp-soft)} .phr .in li{background:var(--ind-soft)}
+
+.talk{display:grid;gap:12px}
+.talk .card{display:grid;gap:8px}
+details summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details ul{margin:6px 0 0;padding-left:1.1em}
+footer{margin-top:40px;color:var(--muted);font-size:.85rem}
+@media (max-width:520px){body{font-size:16px}.q{padding-left:40px}.q::before{left:13px}.bar{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+
+<nav aria-label="Secciones">
+  <div class="navin">
+    <div class="links">
+      <a href="#guia">Guía</a><a href="#pistas">Pistas</a><a href="#elige">A · Elige</a><a href="#historias">B · Historias</a><a href="#antes">C · Antes/ahora</a><a href="#cuando">D · Estaba… cuando</a><a href="#corrige">E · Corrige</a><a href="#frases">F · Frases</a><a href="#habla">G · Habla</a>
+    </div>
+    <div class="score" aria-live="polite"><div class="bar"><i id="barfill"></i></div><span id="score">0 / 0</span></div>
+  </div>
+</nav>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Español A2 · Indefinido e imperfecto</div>
+  <h1>De Bebek a King's</h1>
+  <p class="thesis"><b class="imp">Estaba</b> en Ortaköy, <b class="imp">hacía</b> calor y <b class="imp">había</b> mucha gente… y de repente <b class="ind">vi</b> a mi ex.</p>
+  <div class="legend">
+    <span><i class="dot imp"></i>Imperfecto: la foto (cómo era, qué pasaba alrededor)</span>
+    <span><i class="dot ind"></i>Indefinido: el vídeo (qué pasó)</span>
+  </div>
+</header>
+
+<section id="guia">
+  <h2>Guía rápida</h2>
+  <p class="lead">Cuando cuentas una historia, alternas dos cosas: el escenario y los hechos. El escenario va en imperfecto. Los hechos van en indefinido.</p>
+  <div class="duo">
+    <div class="card im">
+      <h3 class="imp">Imperfecto · la foto</h3>
+      <ul>
+        <li>Cómo era el sitio: <i>El club <b class="imp">era</b> precioso.</i></li>
+        <li>Quién estaba, qué había: <i><b class="imp">Había</b> mucha gente.</i></li>
+        <li>Tiempo y hora: <i><b class="imp">Hacía</b> frío. <b class="imp">Eran</b> las dos.</i></li>
+        <li>Cómo me sentía: <i><b class="imp">Estaba</b> cansada.</i></li>
+        <li>Costumbres: <i>Siempre <b class="imp">íbamos</b> a Bebek.</i></li>
+        <li>Acción en curso: <i><b class="imp">Estaba</b> cenando…</i></li>
+      </ul>
+      <div class="chips"><span class="chip imp">antes</span><span class="chip imp">siempre</span><span class="chip imp">todos los veranos</span><span class="chip imp">cuando era pequeña</span><span class="chip imp">mientras</span><span class="chip imp">normalmente</span></div>
+    </div>
+    <div class="card in">
+      <h3 class="ind">Indefinido · el vídeo</h3>
+      <ul>
+        <li>Lo que pasó, en orden: <i><b class="ind">Fui</b>, <b class="ind">pedí</b>, <b class="ind">pagué</b>.</i></li>
+        <li>Lo que interrumpe: <i>…cuando <b class="ind">sonó</b> el móvil.</i></li>
+        <li>Personas que conocí: <i><b class="ind">Conocí</b> a Luca.</i></li>
+        <li>Número de veces: <i><b class="ind">Fui</b> tres veces.</i></li>
+        <li>Valoración final: <i>La fiesta <b class="ind">fue</b> genial.</i></li>
+      </ul>
+      <div class="chips"><span class="chip ind">ayer</span><span class="chip ind">anoche</span><span class="chip ind">el sábado</span><span class="chip ind">de repente</span><span class="chip ind">una vez</span><span class="chip ind">en septiembre</span></div>
+    </div>
+  </div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Cuando digo…</th><th>Siempre uso</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td>dónde estaba y con quién</td><td><span class="tag imp">Imperfecto</span></td><td>Estaba en Nişantaşı con mi prima.</td></tr>
+        <tr><td>cómo era un sitio o una persona</td><td><span class="tag imp">Imperfecto</span></td><td>El camarero era muy guapo.</td></tr>
+        <tr><td>lo que hacía en Estambul</td><td><span class="tag imp">Imperfecto</span></td><td>Los domingos desayunábamos en Bebek.</td></tr>
+        <tr><td>mi edad o una época</td><td><span class="tag imp">Imperfecto</span></td><td>Cuando tenía quince años, vivía en Etiler.</td></tr>
+        <tr><td>algo que pasó una vez</td><td><span class="tag ind">Indefinido</span></td><td>Ayer compré un abrigo en Selfridges.</td></tr>
+        <tr><td>«de repente…»</td><td><span class="tag ind">Indefinido</span></td><td>De repente empezó a llover.</td></tr>
+        <tr><td>el final de la historia</td><td><span class="tag ind">Indefinido</span></td><td>Al final volvimos en taxi.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="pistas">
+  <h2>Pistas · del inglés al español</h2>
+  <p class="lead">Si piensas la frase en inglés, estas palabras te dicen qué tiempo usar. Ojo: el <i>simple past</i> inglés («I went», «I was») puede ser los dos. Ahí usa las preguntas de abajo.</p>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>En inglés…</th><th>En español</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><i>I <b>used to</b>… / I <b>would</b>… (habit)</i></td><td><span class="tag imp">Imperfecto</span></td><td><i>I used to go to Bodrum.</i> → <b class="imp">Iba</b> a Bodrum.</td></tr>
+        <tr><td><i>I <b>was</b> …<b>-ing</b></i></td><td><span class="tag imp">Imperfecto</span></td><td><i>I was studying.</i> → <b class="imp">Estudiaba</b> / <b class="imp">Estaba estudiando</b>.</td></tr>
+        <tr><td><i><b>While</b>…</i></td><td><span class="tag imp">mientras + imperfecto</span></td><td><i>While I was waiting…</i> → Mientras <b class="imp">esperaba</b>…</td></tr>
+        <tr><td><i><b>When I was</b> a kid / 15</i></td><td><span class="tag imp">Imperfecto</span></td><td>Cuando <b class="imp">era</b> pequeña / <b class="imp">tenía</b> quince años…</td></tr>
+        <tr><td><i><b>There was / were</b>… (description)</i></td><td><span class="tag imp">Imperfecto</span></td><td><b class="imp">Había</b> mucha gente.</td></tr>
+        <tr><td><i><b>It was</b> cold / 2 o'clock</i></td><td><span class="tag imp">Imperfecto</span></td><td><b class="imp">Hacía</b> frío. <b class="imp">Eran</b> las dos.</td></tr>
+        <tr><td><i><b>always, usually, every</b> summer</i></td><td><span class="tag imp">Imperfecto</span></td><td>Siempre <b class="imp">tomaba</b> el ferry.</td></tr>
+        <tr><td><i><b>yesterday, last night, last</b> Saturday, <b>in</b> 2024</i></td><td><span class="tag ind">Indefinido</span></td><td>Anoche <b class="ind">salí</b> con Elif.</td></tr>
+        <tr><td><i><b>suddenly</b></i></td><td><span class="tag ind">Indefinido</span></td><td>De repente <b class="ind">vi</b> a mi ex.</td></tr>
+        <tr><td><i><b>once, twice, three times</b></i></td><td><span class="tag ind">Indefinido</span></td><td><b class="ind">Fui</b> a Bodrum tres veces.</td></tr>
+        <tr><td><i><b>for</b> three years (finished)</i></td><td><span class="tag ind">Indefinido</span></td><td><b class="ind">Viví</b> en Etiler tres años.</td></tr>
+        <tr><td><i><b>and then</b>… (next step)</i></td><td><span class="tag ind">Indefinido</span></td><td>Pagamos y luego nos <b class="ind">fuimos</b>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="duo">
+    <div class="card im">
+      <h3 class="imp">Pregúntate: ¿es la foto?</h3>
+      <ul>
+        <li>¿Describo cómo era el sitio, la gente, el tiempo o la hora?</li>
+        <li>¿Digo cómo me sentía o qué quería?</li>
+        <li>¿En inglés puedo decir <i>used to</i> o <i>would</i>?</li>
+        <li>¿En inglés es <i>was / were + -ing</i>?</li>
+        <li>¿Es algo que pasaba mientras otra cosa pasó?</li>
+      </ul>
+      <p><b class="imp">Sí → imperfecto.</b></p>
+    </div>
+    <div class="card in">
+      <h3 class="ind">Pregúntate: ¿es el vídeo?</h3>
+      <ul>
+        <li>¿Pasó una vez, en un momento concreto?</li>
+        <li>¿La historia avanza? ¿Puedo decir <i>and then…</i>?</li>
+        <li>¿Interrumpe algo, llega «de repente»?</li>
+        <li>¿Sé cuántas veces o cuánto tiempo exacto?</li>
+        <li>¿Es mi opinión final? <i>(La fiesta fue genial.)</i></li>
+      </ul>
+      <p><b class="ind">Sí → indefinido.</b></p>
+    </div>
+  </div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Verbo</th><th><span class="tag imp">Imperfecto</span></th><th><span class="tag ind">Indefinido</span></th></tr></thead>
+      <tbody>
+        <tr><td>conocer</td><td><b class="imp">conocía</b> = <i>I knew (someone)</i></td><td><b class="ind">conocí</b> = <i>I met (for the first time)</i></td></tr>
+        <tr><td>saber</td><td><b class="imp">sabía</b> = <i>I knew (something)</i></td><td><b class="ind">supe</b> = <i>I found out</i></td></tr>
+        <tr><td>tener</td><td><b class="imp">tenía</b> = <i>I had (state)</i></td><td><b class="ind">tuve</b> = <i>I got / had (an event)</i></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="elige">
+  <h2>A · Elige la forma correcta</h2>
+  <p class="lead">Toca el verbo correcto. El color te dice si es foto o vídeo, y debajo aparece el motivo.</p>
+  <div class="list" id="listA"></div>
+</section>
+
+<section id="historias">
+  <h2>B · Mini-historias</h2>
+  <p class="lead">Escribe el verbo en indefinido o imperfecto. Las tildes cuentan: si solo falta la tilde, se marca en amarillo.</p>
+  <div id="storiesB" class="story"></div>
+</section>
+
+<section id="antes">
+  <h2>C · Antes en Estambul, ahora en Londres</h2>
+  <p class="lead">Todo lo que hacías antes, como costumbre, va en imperfecto.</p>
+  <div class="card story" data-group="C"><div class="list" id="listC"></div></div>
+</section>
+
+<section id="cuando">
+  <h2>D · Estaba… cuando…</h2>
+  <p class="lead">La primera parte es el fondo (imperfecto). La segunda es lo que interrumpe (indefinido). En la primera vale «estaba + gerundio» o el imperfecto simple.</p>
+  <div class="card story" data-group="D"><div class="list" id="listD"></div></div>
+</section>
+
+<section id="corrige">
+  <h2>E · ¿Correcta o incorrecta?</h2>
+  <p class="lead">Decide y luego mira la explicación.</p>
+  <div class="list" id="listE"></div>
+</section>
+
+<section id="frases">
+  <h2>F · Frases salvavidas</h2>
+  <p class="lead">Memoriza estas frases. Con ellas puedes contar casi cualquier anécdota.</p>
+  <div class="phr">
+    <div class="card im"><h3 class="imp" style="margin-bottom:10px">El escenario</h3><ul>
+      <li>Era tarde.</li><li>Había mucha gente.</li><li>Estaba con mis amigas.</li><li>Hacía un frío horrible.</li><li>Tenía mucha hambre.</li><li>El sitio era precioso.</li><li>La música estaba genial.</li><li>No conocía a nadie.</li></ul></div>
+    <div class="card in"><h3 class="ind" style="margin-bottom:10px">La acción</h3><ul>
+      <li>Fuimos a…</li><li>Conocí a…</li><li>Me dijo que…</li><li>Pedimos…</li><li>De repente vi a…</li><li>Empezó a llover.</li><li>Nos fuimos a las tres.</li><li>Me encantó.</li></ul></div>
+  </div>
+</section>
+
+<section id="habla">
+  <h2>G · Habla</h2>
+  <p class="lead">Responde en voz alta, de 30 segundos a un minuto. Primero el escenario, después lo que pasó.</p>
+  <div class="talk" id="talkG"></div>
+</section>
+
+<footer>Nivel A2 · Pretérito indefinido e imperfecto · Estambul y Londres</footer>
+</div>
+
+<script>
+const R={
+  a:["ind","Acción concreta: lo que pasó"],
+  i:["ind","Lo que interrumpe la escena"],
+  n:["ind","Número de veces o periodo cerrado"],
+  d:["imp","Descripción del escenario"],
+  h:["imp","Costumbre: lo que hacías siempre"],
+  c:["imp","Acción en curso, el fondo"],
+  e:["imp","Edad o época de la vida"],
+  f:["imp","Estado o sentimiento"]
+};
+const TNAME={imp:"Imperfecto",ind:"Indefinido"};
+const blanks={}; let n=0;
+
+function parse(tpl){
+  return tpl.replace(/\{([^}]+)\}/g,(m,body)=>{
+    const id="b"+(++n);
+    if(body.includes("=")){
+      const [v,rest]=body.split("="); const [ans,r]=rest.split("|");
+      const list=ans.split("/");
+      const w=Math.max(...list.map(s=>s.length))+2;
+      blanks[id]={type:"fill",ans:list,r,status:null};
+      return `<span class="fill"><span class="hint">(${v})</span><input id="${id}" aria-label="${v}" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:${w}ch"><span class="fix" id="${id}f"></span></span>`;
+    }
+    const p=body.split("|"); const r=p.pop(); const ci=+p.pop();
+    blanks[id]={type:"choice",ci,opts:p,r,status:null};
+    return `<span class="ch" id="${id}">`+p.map((o,i)=>`<button type="button" data-b="${id}" data-i="${i}">${o}</button>`).join("")+`</span>`;
+  });
+}
+
+/* A */
+const A=[
+"Ayer {fui|iba|0|a} a Camden con unas amigas.",
+"En Estambul, todos los domingos {desayuné|desayunaba|1|h} en Bebek con mi familia.",
+"El club de Ortaköy {fue|era|1|d} muy elegante y {tuvo|tenía|1|d} vistas al Bósforo.",
+"El lunes {tenía|tuve|1|a} mi primera clase en King's y me encantó.",
+"Cuando {fui|era|1|e} pequeña, {vivimos|vivíamos|1|e} en Nişantaşı.",
+"{Llovió|Llovía|1|d} mucho cuando {salí|salía|0|a} de la biblioteca.",
+"Anoche {conocí|conocía|0|a} a un chico italiano en un bar de Soho.",
+"El restaurante {estuvo|estaba|1|d} lleno, así que {esperábamos|esperamos|1|n} media hora.",
+"En verano, mis amigas y yo {fuimos|íbamos|1|h} a Bodrum cada fin de semana.",
+"El año pasado {iba|fui|1|n} a Bodrum tres veces.",
+"{Hizo|Hacía|1|d} frío y no {tuve|tenía|1|f} chaqueta.",
+"De repente, mi madre me {llamaba|llamó|1|i} desde Estambul.",
+"Mi residencia {estaba|estuvo|0|d} cerca del Strand.",
+"El viernes {fuimos|íbamos|0|a} a cenar a Mayfair y {pedíamos|pedimos|1|a} sushi.",
+"Cuando {viví|vivía|1|e} en Estambul, siempre {tomaba|tomé|0|h} el ferry a Kadıköy.",
+"{Estuve|Estaba|1|f} muy cansada, pero {fui|iba|0|a} a la fiesta igualmente.",
+"En la fiesta {había|hubo|0|d} mucha gente y la música {estaba|estuvo|0|d} muy alta.",
+"Mientras {esperé|esperaba|1|c} el metro, {vi|veía|0|i} a mi profesora de Historia.",
+"Mi abuela siempre me {decía|dijo|0|h}: «¡Abrígate, que en Londres hace frío!»",
+"En septiembre {me mudaba|me mudé|1|a} a Londres para estudiar en King's."
+];
+document.getElementById("listA").innerHTML=A.map(t=>`<div class="q"><div>${parse(t)}</div><div class="why"></div></div>`).join("");
+
+/* B */
+const B=[
+["Un sábado en Bebek",
+"El sábado pasado {ir=fui|a} a Bebek con mi prima. {hacer=Hacía|d} sol y {haber=había|d} mucha gente en el paseo. {nosotras, pedir=pedimos|a} un café en un sitio muy bonito. El camarero {ser=era|d} muy simpático. De repente, {yo, ver=vi|i} a mi ex. {él, estar=Estaba|d} con una chica rubia. ¡Qué vergüenza! {nosotras, pagar=pagamos|a} y {nosotras, irse=nos fuimos|a} rápido."],
+["Fiesta en un yate en Ortaköy",
+"En agosto, mis amigos {organizar=organizaron|a} una fiesta en un yate. El yate {ser=era|d} enorme y la música {estar=estaba|d} genial. Todos {llevar=llevaban|d} ropa blanca. A las dos de la mañana {empezar=empezó|i} a llover. Nosotros {bailar=bailábamos/estábamos bailando|c} cuando el capitán {decir=dijo|i} que teníamos que volver. Yo {llegar=llegué|a} a casa a las cinco."],
+["Mi primer día en Londres",
+"Cuando {llegar=llegué|a} a Londres, {estar=estaba|f} muy nerviosa. El aeropuerto {ser=era|d} gigante y no {conocer=conocía|f} a nadie. {tomar=Tomé|a} un taxi a mi residencia. Mi habitación {ser=era|d} pequeña, ¡muy pequeña! Esa noche {llamar=llamé|a} a mi madre y {llorar=lloré|a} un poco."],
+["Brunch en Notting Hill",
+"El domingo {quedar=quedé|a} con Elif en Notting Hill. {ser=Era|d} un día bonito y no {hacer=hacía|d} frío. El café {estar=estaba|d} lleno de gente con perros. Mientras {nosotras, esperar=esperábamos|c} la mesa, {yo, recibir=recibí|i} un mensaje de mi padre. {querer=Quería|f} saber si yo {estudiar=estudiaba|c} mucho. Yo le {mandar=mandé|a} una foto de mi libro… ¡pero {yo, estar=estaba|d} en un brunch!"]
+];
+document.getElementById("storiesB").innerHTML=B.map(([h,t],k)=>`<div class="card story" data-group="B${k}"><h3>${h}</h3><p>${parse(t)}</p>${actions()}</div>`).join("");
+
+/* C */
+const C=[
+"Antes mi chófer me {llevar=llevaba|h} a todas partes. Ahora voy en metro.",
+"Antes {comer=comía|h} en casa de mis padres. Ahora cocino yo… más o menos.",
+"Antes {salir=salía|h} por Bebek. Ahora salgo por Shoreditch.",
+"Antes {ver=veía|h} el Bósforo desde mi ventana. Ahora veo un edificio gris.",
+"Antes {hablar=hablaba|h} turco todo el día. Ahora hablo inglés.",
+"Antes no {tener=tenía|h} que lavar mi ropa. Ahora voy a la lavandería.",
+"Antes {ir=iba|h} a Bodrum cada verano. Ahora estudio en la biblioteca.",
+"Antes mi madre {organizar=organizaba|h} todo. Ahora lo organizo yo."
+];
+document.getElementById("listC").innerHTML=C.map(t=>`<div class="q">${parse(t)}</div>`).join("");
+document.querySelector('[data-group="C"]').insertAdjacentHTML("beforeend",actions());
+
+/* D */
+const D=[
+"{caminar=Estaba caminando/Caminaba|c} por Oxford Street cuando {encontrar=encontré|i} a una amiga turca.",
+"{estudiar=Estaba estudiando/Estudiaba|c} en la biblioteca cuando {sonar=sonó|i} mi móvil.",
+"{nosotros, cenar=Estábamos cenando/Cenábamos|c} en Ortaköy cuando {empezar=empezaron|i} los fuegos artificiales.",
+"{dormir=Estaba durmiendo/Dormía|c} cuando mi compañera de piso {poner=puso|i} música.",
+"{esperar=Estaba esperando/Esperaba|c} el autobús cuando un chico me {preguntar=preguntó|i} algo.",
+"{nosotras, hacer=Estábamos haciendo/Hacíamos|c} compras en Harrods cuando {ver=vimos|i} a una actriz famosa.",
+"{ducharse=Me estaba duchando/Me duchaba/Estaba duchándome|c} cuando {llegar=llegó|i} mi pedido de Deliveroo."
+];
+document.getElementById("listD").innerHTML=D.map(t=>`<div class="q">${parse(t)}</div>`).join("");
+document.querySelector('[data-group="D"]').insertAdjacentHTML("beforeend",actions());
+
+function actions(){return `<div class="actions"><button type="button" class="btn" data-act="check">Comprobar</button><button type="button" class="btn ghost" data-act="show">Ver soluciones</button><span class="msg"></span></div>`}
+
+/* E */
+const E=[
+["Ayer estaba en Harrods y compraba un bolso.",false,"Ayer estaba en Harrods y <b class='ind'>compré</b> un bolso.","Comprar el bolso es una acción concreta: indefinido."],
+["Cuando fui niña, iba a Büyükada en verano.",false,"Cuando <b class='imp'>era</b> niña, iba a Büyükada en verano.","La edad o la época de la vida va en imperfecto."],
+["La fiesta fue muy bonita y había mucha gente.",true,"","«Fue» es la valoración final de la fiesta. «Había» describe el escenario."],
+["Mientras desayuné, leía mis mensajes.",false,"Mientras <b class='imp'>desayunaba</b>, leía mis mensajes.","Dos acciones en curso a la vez: las dos en imperfecto."],
+["Antes vivía en Estambul, pero en septiembre me mudaba a Londres.",false,"Antes vivía en Estambul, pero en septiembre <b class='ind'>me mudé</b> a Londres.","Mudarse pasó una vez, en una fecha concreta: indefinido."],
+["Hacía calor, entonces fuimos a nadar.",true,"","«Hacía calor» es el escenario y «fuimos» es la acción."],
+["El sábado pasado iba a una fiesta en Shoreditch.",false,"El sábado pasado <b class='ind'>fui</b> a una fiesta en Shoreditch.","Un día concreto y una acción terminada: indefinido."],
+["Cuando llegué a casa, mi compañera cocinaba.",true,"","«Cocinaba» es lo que pasaba en ese momento, el fondo. «Llegué» es la acción."]
+];
+document.getElementById("listE").innerHTML=E.map(([s],k)=>`<div class="q" data-e="${k}"><div>${s}</div><div class="e-btns"><button type="button" data-v="1">Correcta</button><button type="button" data-v="0">Incorrecta</button></div><div class="reveal" hidden></div></div>`).join("");
+const eState={};
+
+/* G */
+const G=[
+["¿Qué hiciste el fin de semana? ¿Cómo era el sitio?",["El sábado fui a…","El sitio era…","Había…","Al final…"]],
+["¿Qué hacías los veranos en Estambul?",["Todos los veranos íbamos a…","Por la mañana…","Por la noche siempre…"]],
+["Cuenta la primera vez que saliste de fiesta en Londres.",["Era viernes y estaba con…","El club era…","De repente…","Volví a casa a las…"]],
+["Compara un domingo típico en Bebek con tu último domingo en Londres.",["En Bebek, los domingos desayunábamos…","El domingo pasado desayuné…"]],
+["Cuenta un momento divertido o un poco embarazoso en King's.",["Estaba en clase cuando…","El profesor me dijo…","Todos se rieron."]]
+];
+document.getElementById("talkG").innerHTML=G.map(([q,s])=>`<div class="card"><h3>${q}</h3><details><summary>Ideas para empezar</summary><ul>${s.map(x=>`<li>${x}</li>`).join("")}</ul></details></div>`).join("");
+
+/* logic */
+const norm=s=>s.toLowerCase().trim().replace(/\s+/g," ").replace(/^(yo|nosotras|nosotros|él|ella|ellos) /,"");
+const strip=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
+
+function whyLine(b,word){const [t,txt]=R[b.r];return `<div><span class="tag ${t}">${TNAME[t]}</span><span><b class="${t}">${word}</b> · ${txt}</span></div>`}
+
+document.addEventListener("click",e=>{
+  const ob=e.target.closest(".ch button");
+  if(ob){
+    const id=ob.dataset.b,b=blanks[id],i=+ob.dataset.i,wrap=document.getElementById(id);
+    if(wrap.classList.contains("done"))return;
+    if(i===b.ci){
+      if(b.status===null)b.status="ok";
+      ob.classList.add("right",R[b.r][0]); wrap.classList.add("done");
+      wrap.closest(".q").querySelector(".why").insertAdjacentHTML("beforeend",whyLine(b,b.opts[i]));
+    }else{ if(b.status===null)b.status="bad"; ob.classList.add("wrong"); }
+    score();return;
+  }
+  const act=e.target.closest("[data-act]");
+  if(act){
+    const box=act.closest("[data-group]");let ok=0,tot=0;
+    box.querySelectorAll(".fill input").forEach(inp=>{
+      const b=blanks[inp.id],fix=document.getElementById(inp.id+"f");tot++;
+      inp.className="";fix.className="fix";fix.textContent="";
+      if(act.dataset.act==="show"){
+        if(b.status!=="ok"){inp.value=b.ans[0];inp.classList.add("shown");b.status="shown";}
+        else{inp.classList.add("ok",R[b.r][0]);ok++}
+        return;
+      }
+      const v=norm(inp.value);if(!v){b.status=null;return}
+      const A2=b.ans.map(norm);
+      if(A2.includes(v)){b.status="ok";ok++;inp.classList.add("ok",R[b.r][0]);inp.title=R[b.r][1];}
+      else if(A2.map(strip).includes(strip(v))){b.status="tilde";inp.classList.add("tilde");fix.classList.add("tilde");fix.textContent="→ falta la tilde: "+b.ans[0];}
+      else{b.status="bad";inp.classList.add("bad");fix.classList.add("bad");fix.textContent="→ "+b.ans[0]+" ("+TNAME[R[b.r][0]].toLowerCase()+": "+R[b.r][1].toLowerCase()+")";}
+    });
+    box.querySelector(".msg").textContent=act.dataset.act==="check"?`${ok} de ${tot} correctas`:"Soluciones a la vista. Borra y vuelve a intentarlo cuando quieras.";
+    score();return;
+  }
+  const eb=e.target.closest(".e-btns button");
+  if(eb){
+    const q=eb.closest("[data-e]"),k=+q.dataset.e,[s,good,fix,why]=E[k];
+    if(k in eState)return;
+    const pick=eb.dataset.v==="1";eState[k]=pick===good;
+    eb.classList.add("picked",eState[k]?"good":"nope");
+    const rv=q.querySelector(".reveal");
+    rv.innerHTML=(eState[k]?"<b style='color:var(--ok)'>¡Bien!</b> ":"<b style='color:var(--bad)'>No exactamente.</b> ")+(good?"La frase es correcta. ":"Corrección: "+fix+". ")+why;
+    rv.hidden=false;score();
+  }
+});
+document.addEventListener("input",e=>{if(e.target.matches(".fill input")){e.target.className="";const f=document.getElementById(e.target.id+"f");if(f){f.textContent="";f.className="fix"}}});
+
+function score(){
+  const all=Object.values(blanks);const tot=all.length+E.length;
+  const ok=all.filter(b=>b.status==="ok").length+Object.values(eState).filter(Boolean).length;
+  document.getElementById("score").textContent=`${ok} / ${tot} aciertos`;
+  document.getElementById("barfill").style.width=(ok/tot*100)+"%";
+}
+score();
+</script>
+
+</body></html>
