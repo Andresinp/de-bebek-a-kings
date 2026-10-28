@@ -1,0 +1,840 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>¿Y el planeta, qué?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout as in ../index.html; ir a = cobalt (el plan), futuro = ochre (la predicción), si + presente = green, conectores = amber */
+:root{
+  --bg:#f2f5f8; --surface:#ffffff; --ink:#14212b; --muted:#566573; --line:#d6dee6;
+  --ira:#1f4fa6; --ira-soft:#e2eaf8;
+  --fut:#a85a12; --fut-soft:#f8eadb;
+  --ok:#1f7a49; --ok-soft:#ddf1e5; --bad:#b42a22; --bad-soft:#f9e1df; --warn:#8a6100; --warn-soft:#fbefcf;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f171d; --surface:#17222b; --ink:#e5edf3; --muted:#9aa9b5; --line:#2a3946;
+  --ira:#8db0f0; --ira-soft:#1b2c48; --fut:#eba463; --fut-soft:#3a2816;
+  --ok:#62c78f; --ok-soft:#163826; --bad:#f08178; --bad-soft:#3d1d1b; --warn:#e6b84f; --warn-soft:#3a2e12;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171d; --surface:#17222b; --ink:#e5edf3; --muted:#9aa9b5; --line:#2a3946;
+  --ira:#8db0f0; --ira-soft:#1b2c48; --fut:#eba463; --fut-soft:#3a2816;
+  --ok:#62c78f; --ok-soft:#163826; --bad:#f08178; --bad-soft:#3d1d1b; --warn:#e6b84f; --warn-soft:#3a2e12;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+.wrap{max-width:820px;margin:0 auto;padding-inline:16px;padding-block:0 64px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h2{font-size:1.7rem;font-weight:800}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+.ira{color:var(--ira)} .fut{color:var(--fut)}
+b.ira,b.fut{font-weight:700}
+
+/* nav */
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.navin{max-width:820px;margin:0 auto;padding:10px 16px;display:flex;gap:12px;align-items:center}
+.links{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.links a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:.9rem;padding:4px 10px;border-radius:999px}
+.links a:hover,.links a:focus-visible{background:var(--surface);color:var(--ink)}
+.score{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.bar{width:64px;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+
+/* hero */
+header{padding-block:40px 28px;display:grid;gap:16px}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(2.2rem,7vw,3.6rem);font-weight:800;letter-spacing:-.02em}
+.thesis{font-family:var(--display);font-size:clamp(1.2rem,3.4vw,1.55rem);font-weight:500;line-height:1.4;max-width:34ch}
+.thesis b{font-weight:800;padding:0 .15em;border-radius:4px}
+.thesis b.ira{background:var(--ira-soft)} .thesis b.fut{background:var(--fut-soft)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:.92rem;color:var(--muted)}
+.legend span{display:inline-flex;gap:8px;align-items:center}
+.dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+.dot.ira{background:var(--ira)} .dot.fut{background:var(--fut)}
+
+section{padding-block:36px 8px;display:grid;gap:18px;scroll-margin-top:60px}
+.lead{color:var(--muted);max-width:62ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+
+/* guide */
+.duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.duo .card{display:grid;gap:10px;align-content:start}
+.duo .card.im{border-top:4px solid var(--ira)} .duo .card.in{border-top:4px solid var(--fut)}
+.duo ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.85rem;padding:2px 10px;border-radius:999px;border:1px solid var(--line)}
+.chip.ira{background:var(--ira-soft);border-color:transparent}
+.chip.fut{background:var(--fut-soft);border-color:transparent}
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.95rem}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+tr:last-child td{border-bottom:0}
+.tag{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:1px 7px;border-radius:4px;white-space:nowrap}
+.tag.ira{background:var(--ira-soft);color:var(--ira)} .tag.fut{background:var(--fut-soft);color:var(--fut)}
+
+/* exercises */
+.list{display:grid;gap:10px;counter-reset:q}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px 14px 48px;position:relative;counter-increment:q}
+.q::before{content:counter(q);position:absolute;left:16px;top:15px;font-family:var(--display);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.ch{display:inline-flex;gap:4px;vertical-align:baseline;margin:0 2px}
+.ch button{font:inherit;font-size:.95em;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:0 8px;cursor:pointer;line-height:1.6}
+.ch button:hover{border-color:var(--muted)}
+.ch button:focus-visible,.btn:focus-visible,input:focus-visible,.links a:focus-visible{outline:2px solid var(--ira);outline-offset:2px}
+.ch button.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+.ch.done button:not(.right){opacity:.35;cursor:default}
+.ch button.right.ira{background:var(--ira-soft);border-color:var(--ira);color:var(--ira);font-weight:700}
+.ch button.right.fut{background:var(--fut-soft);border-color:var(--fut);color:var(--fut);font-weight:700}
+.why{display:grid;gap:4px;margin-top:6px;font-size:.88rem;color:var(--muted)}
+.why:empty{display:none}
+.why div{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+
+.story{display:grid;gap:12px}
+.story p{line-height:2.3}
+.fill{white-space:nowrap}
+.hint{font-size:.8em;color:var(--muted);margin-right:3px}
+.fill input{font:inherit;color:var(--ink);background:var(--bg);border:0;border-bottom:2px solid var(--line);padding:0 4px;border-radius:4px 4px 0 0;min-width:5ch;max-width:100%}
+.fill input.ok.ira{background:var(--ira-soft);border-color:var(--ira);color:var(--ira);font-weight:700}
+.fill input.ok.fut{background:var(--fut-soft);border-color:var(--fut);color:var(--fut);font-weight:700}
+.fill input.bad{background:var(--bad-soft);border-color:var(--bad)}
+.fill input.tilde{background:var(--warn-soft);border-color:var(--warn)}
+.fill input.shown{border-color:var(--muted);color:var(--muted)}
+.fix{font-size:.82em;margin-left:4px;white-space:normal}
+.fix.bad{color:var(--bad)} .fix.tilde{color:var(--warn)}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:inherit;font-size:.92rem;font-weight:700;border-radius:8px;padding:6px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--surface)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.msg{font-size:.9rem;color:var(--muted);align-self:center}
+
+.e-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.e-btns button{font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:2px 10px;cursor:pointer}
+.e-btns button.picked.good{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+.e-btns button.picked.nope{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.reveal{margin-top:8px;font-size:.92rem}
+.reveal[hidden]{display:none}
+
+.phr{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.phr ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.phr li{padding:6px 10px;border-radius:6px}
+.phr .im li{background:var(--ira-soft)} .phr .in li{background:var(--fut-soft)}
+
+.talk{display:grid;gap:12px}
+.talk .card{display:grid;gap:8px}
+details summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details ul{margin:6px 0 0;padding-left:1.1em}
+#pistas td i b{font-style:normal;font-weight:700}
+/* time markers (A) */
+.tm{background:var(--warn-soft);border-radius:4px;padding:1px 6px;font-weight:700;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.tm i{white-space:nowrap;font-weight:400;font-size:.8em;color:var(--warn)}
+/* Turkish notes */
+.tr{border-left:4px solid var(--warn);display:grid;gap:8px}
+.tr .eyebrow{color:var(--warn)}
+.tr ul{margin:0;padding:0;list-style:none;display:grid;gap:4px}
+/* memory deck (C) */
+.deck{display:grid;gap:12px;max-width:520px}
+.deck-nav,.deck-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#dPos{color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+.btn:disabled{opacity:.35;cursor:default}
+.mk{font-size:.75rem;font-weight:700;padding:1px 8px;border-radius:999px;justify-self:start}
+.mk.ok{background:var(--ok-soft);color:var(--ok)} .mk.no{background:var(--bad-soft);color:var(--bad)}
+.flip{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;cursor:pointer;perspective:1000px;width:100%}
+.flip .in{display:grid;transition:transform .5s;transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip.instant .in{transition:none}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;display:grid;gap:12px;align-content:center;min-height:220px}
+.face.back{transform:rotateY(180deg);border-color:var(--ink)}
+.face .lang{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.face .en{font-family:var(--display);font-size:1.35rem;font-weight:700;line-height:1.3}
+.face .es{font-family:var(--display);font-size:1.35rem;font-weight:500;line-height:1.35}
+.face .es b{font-weight:800}
+.face small{color:var(--muted);font-size:.82rem}
+.flip:focus-visible{outline:2px solid var(--ira);outline-offset:3px;border-radius:14px}
+footer{margin-top:40px;color:var(--muted);font-size:.85rem}
+section,.story,.list{grid-template-columns:minmax(0,1fr)}
+@media (max-width:520px){body{font-size:16px}.fill{white-space:normal}.q{padding-left:40px}.q::before{left:13px}.bar{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+
+/* added for this page */
+.pre{color:var(--ok)} b.pre{font-weight:700}
+.thesis b.pre{background:var(--ok-soft)}
+.dot.pre{background:var(--ok)}
+.tag.pre{background:var(--ok-soft);color:var(--ok)}
+.tag.cn{background:var(--warn-soft);color:var(--warn)}
+.tag.rec{border:1px solid var(--line);color:var(--muted)}
+.ch button.right.pre{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+.ch button.right.cn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn);font-weight:700}
+.fill input.ok.pre{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+.duo .card.pr{border-top:4px solid var(--ok)}
+.back-link{font-size:.9rem;color:var(--muted)}
+.back-link a{color:inherit}
+/* problems */
+.prob{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.prob .card{display:grid;gap:10px;align-content:start}
+.prob .sub{font-size:.85rem;color:var(--muted)}
+.gb{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:.95rem}
+.gb li{padding:4px 10px;border-radius:6px}
+.gb .y{background:var(--ok-soft)} .gb .n{background:var(--bad-soft)}
+.gb .y::before{content:"✓ ";color:var(--ok);font-weight:700} .gb .n::before{content:"✗ ";color:var(--bad);font-weight:700}
+.you{font-size:.92rem;border-left:3px solid var(--line);padding-left:10px}
+/* writing */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.steps .card{padding:14px 16px;display:grid;gap:4px}
+.steps .t{font-family:var(--display);font-weight:800;font-size:1.3rem}
+.model{display:grid;gap:12px}
+.model h3{font-size:1.35rem}
+.model p{line-height:1.75}
+.model b.ira{background:var(--ira-soft);border-radius:3px;padding:0 2px}
+.model b.fut{background:var(--fut-soft);border-radius:3px;padding:0 2px}
+.model b.pre{background:var(--ok-soft);border-radius:3px;padding:0 2px}
+.model .cn{background:var(--warn-soft);color:var(--warn);font-weight:700;border-radius:3px;padding:0 2px}
+.model .pp{text-decoration:underline dotted var(--muted) 2px;text-underline-offset:4px}
+.model .pn{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:2px}
+textarea{width:100%;min-height:340px;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;line-height:1.7;resize:vertical}
+textarea:focus-visible{outline:2px solid var(--ira);outline-offset:2px}
+.wbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.wc{font-weight:700;font-variant-numeric:tabular-nums;padding:2px 10px;border-radius:999px}
+.wc.low{background:var(--warn-soft);color:var(--warn)} .wc.good{background:var(--ok-soft);color:var(--ok)} .wc.over{background:var(--bad-soft);color:var(--bad)}
+#timer{font-family:var(--display);font-weight:800;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checks label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.checks input{margin-top:5px;accent-color:var(--ok)}
+</style>
+</head><body>
+
+<nav aria-label="Secciones">
+  <div class="navin">
+    <div class="links">
+      <a href="#guia">Guía</a><a href="#pistas">Pistas</a><a href="#forma">A · Forma</a><a href="#natural">B · ¿Plan o predicción?</a><a href="#historias">C · Historias</a><a href="#si">D · Si…</a><a href="#tarjetas">E · Tarjetas</a><a href="#planeta">F · El planeta</a><a href="#bienmal">G · ¿Bien o mal?</a><a href="#corrige">H · Corrige</a><a href="#articulo">I · El artículo</a><a href="#completa">J · Completa</a><a href="#escribe">K · Escribe</a>
+    </div>
+    <div class="score" aria-live="polite"><div class="bar"><i id="barfill"></i></div><span id="score">0 / 0</span></div>
+  </div>
+</nav>
+
+<div class="wrap">
+<header>
+  <div class="back-link"><a href="../">← De Bebek a King's</a></div>
+  <div class="eyebrow">Español intermedio · Futuro y sostenibilidad · Examen de King's</div>
+  <h1>¿Y el planeta, qué?</h1>
+  <p class="thesis">Mañana <b class="ira">voy a comprar</b> una taza reutilizable. En 2050, Londres <b class="fut">será</b> más verde… si todos <b class="pre">hacemos</b> algo.</p>
+  <div class="legend">
+    <span><i class="dot ira"></i>Ir a + infinitivo: el plan (ya lo has decidido)</span>
+    <span><i class="dot fut"></i>Futuro: la predicción, la promesa, el futuro lejano</span>
+    <span><i class="dot pre"></i>Si + presente: la condición</span>
+  </div>
+</header>
+
+<section id="guia">
+  <h2>Guía rápida</h2>
+  <p class="lead">En español hay dos maneras de hablar del futuro. Muchas veces las dos son posibles, pero cada una tiene su terreno: el plan que ya tienes en la agenda, o lo que imaginas, predices o prometes.</p>
+  <div class="duo">
+    <div class="card im">
+      <h3 class="ira">Ir a + infinitivo · el plan</h3>
+      <ul>
+        <li>Planes ya decididos: <i>Este finde <b class="ira">voy a ir</b> a Brighton.</i></li>
+        <li>Intenciones: <i><b class="ira">Voy a comer</b> menos carne.</i></li>
+        <li>Lo ves venir: <i>Mira el cielo: <b class="ira">va a llover</b>.</i></li>
+        <li>Lo que pasa pronto: <i>Esta noche <b class="ira">vamos a cenar</b> en Soho.</i></li>
+      </ul>
+      <div class="tablebox"><table style="min-width:0">
+        <tbody><tr><td>yo</td><td><b class="ira">voy</b></td><td rowspan="6" style="vertical-align:middle"><b>a</b> + infinitivo<br><i>reciclar, comer, vivir…</i></td></tr>
+        <tr><td>tú</td><td><b class="ira">vas</b></td></tr><tr><td>él, ella, usted</td><td><b class="ira">va</b></td></tr>
+        <tr><td>nosotros/as</td><td><b class="ira">vamos</b></td></tr><tr><td>vosotros/as</td><td><b class="ira">vais</b></td></tr><tr><td>ellos/as, ustedes</td><td><b class="ira">van</b></td></tr></tbody>
+      </table></div>
+      <div class="chips"><span class="chip ira">esta noche</span><span class="chip ira">mañana</span><span class="chip ira">este fin de semana</span><span class="chip ira">la semana que viene</span><span class="chip ira">el próximo verano</span></div>
+    </div>
+    <div class="card in">
+      <h3 class="fut">Futuro · la predicción</h3>
+      <ul>
+        <li>Predicciones: <i>En 2050 <b class="fut">hará</b> más calor.</i></li>
+        <li>Futuro lejano o imaginado: <i>Algún día <b class="fut">viviré</b> en Madrid.</i></li>
+        <li>Promesas: <i>Te lo prometo: <b class="fut">reciclaré</b>.</i></li>
+        <li>Opinión sobre el futuro: <i>Creo que la gente <b class="fut">comerá</b> menos carne.</i></li>
+        <li>Consecuencia de <i>si</i>: <i>Si vamos en metro, <b class="fut">contaminaremos</b> menos.</i></li>
+      </ul>
+      <div class="tablebox"><table style="min-width:0">
+        <tbody><tr><td>yo</td><td>reciclar<b class="fut">é</b></td></tr><tr><td>tú</td><td>reciclar<b class="fut">ás</b></td></tr>
+        <tr><td>él, ella, usted</td><td>reciclar<b class="fut">á</b></td></tr><tr><td>nosotros/as</td><td>reciclar<b class="fut">emos</b></td></tr>
+        <tr><td>vosotros/as</td><td>reciclar<b class="fut">éis</b></td></tr><tr><td>ellos/as, ustedes</td><td>reciclar<b class="fut">án</b></td></tr></tbody>
+      </table></div>
+      <p style="font-size:.9rem">Las terminaciones van <b>detrás del infinitivo entero</b>, igual para -ar, -er, -ir: <i>comer<b class="fut">é</b>, vivir<b class="fut">é</b></i>.</p>
+      <div class="chips"><span class="chip fut">en 2050</span><span class="chip fut">dentro de diez años</span><span class="chip fut">algún día</span><span class="chip fut">en el futuro</span><span class="chip fut">seguramente</span></div>
+    </div>
+  </div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Irregulares</th><th>Raíz</th><th>Ejemplo para el artículo</th></tr></thead>
+      <tbody>
+        <tr><td>haber (hay)</td><td><b class="fut">habr-</b></td><td>En 2050 <b class="fut">habrá</b> menos agua. <i>(nunca «habrán»)</i></td></tr>
+        <tr><td>hacer</td><td><b class="fut">har-</b></td><td><b class="fut">Hará</b> más calor en verano.</td></tr>
+        <tr><td>tener</td><td><b class="fut">tendr-</b></td><td><b class="fut">Tendremos</b> que ahorrar energía.</td></tr>
+        <tr><td>poder</td><td><b class="fut">podr-</b></td><td>No <b class="fut">podremos</b> vivir igual.</td></tr>
+        <tr><td>poner</td><td><b class="fut">pondr-</b></td><td>La universidad <b class="fut">pondrá</b> más fuentes de agua.</td></tr>
+        <tr><td>salir</td><td><b class="fut">saldr-</b></td><td><b class="fut">Saldrá</b> más barato reparar que comprar.</td></tr>
+        <tr><td>venir</td><td><b class="fut">vendr-</b></td><td><b class="fut">Vendrán</b> veranos más secos.</td></tr>
+        <tr><td>decir</td><td><b class="fut">dir-</b></td><td>¿Qué <b class="fut">dirán</b> nuestros nietos?</td></tr>
+        <tr><td>saber</td><td><b class="fut">sabr-</b></td><td>Nadie <b class="fut">sabrá</b> qué es una bolsa de plástico.</td></tr>
+        <tr><td>querer</td><td><b class="fut">querr-</b></td><td>Los jóvenes <b class="fut">querrán</b> ciudades verdes.</td></tr>
+        <tr><td>valer, caber</td><td><b class="fut">valdr-, cabr-</b></td><td>El agua <b class="fut">valdrá</b> más que el petróleo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="pistas">
+  <h2>Pistas · del inglés y del turco al español</h2>
+  <p class="lead">Si piensas la frase en inglés, estas palabras te dicen qué forma usar.</p>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>En inglés…</th><th>En español</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><i>I'm <b>going to</b>…</i></td><td><span class="tag ira">ir a</span></td><td><i>I'm going to recycle.</i> → <b class="ira">Voy a reciclar</b>.</td></tr>
+        <tr><td><i>I'm fly<b>ing</b> on Friday (plan)</i></td><td><span class="tag ira">ir a</span> o presente</td><td><b class="ira">Voy a volar</b> / Vuelo el viernes. <i>Nunca «estoy volando».</i></td></tr>
+        <tr><td><i>It <b>will</b> be hot (prediction)</i></td><td><span class="tag fut">futuro</span></td><td><b class="fut">Hará</b> calor.</td></tr>
+        <tr><td><i>There <b>will be</b>…</i></td><td><span class="tag fut">habrá</span></td><td><b class="fut">Habrá</b> más coches eléctricos. <i>Singular siempre.</i></td></tr>
+        <tr><td><i>I think it <b>will</b>…</i></td><td><span class="tag fut">creo que + futuro</span></td><td>Creo que <b class="fut">será</b> difícil.</td></tr>
+        <tr><td><i><b>If</b> we recycle, we <b>will</b>…</i></td><td><span class="tag pre">si + presente</span> <span class="tag fut">futuro</span></td><td>Si <b class="pre">reciclamos</b>, <b class="fut">ahorraremos</b>… <i>Nunca «si reciclaremos».</i></td></tr>
+        <tr><td><i>We <b>should</b>…</i></td><td><span class="tag rec">deberíamos + inf.</span></td><td>Deberíamos comer menos carne.</td></tr>
+        <tr><td><i>We <b>have to</b>… / One <b>must</b>…</i></td><td><span class="tag rec">tenemos que / hay que + inf.</span></td><td>Tenemos que ahorrar agua. Hay que reciclar.</td></tr>
+        <tr><td><i>We <b>can</b>…</i></td><td><span class="tag rec">podemos + inf.</span></td><td>Podemos ir andando.</td></tr>
+        <tr><td><i>I <b>have noticed</b> that…</i></td><td><span class="tag rec">he observado que</span></td><td>He observado que hay mucho plástico.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card tr" lang="tr">
+    <div class="eyebrow">Türkçe açıklama · Plan mı, tahmin mi?</div>
+    <p>Türkçede gelecek için tek bir ek var: <i>-ecek / -acak</i>. İspanyolcada iki yol var:</p>
+    <ul>
+      <li><b class="ira">ir a + mastar = plan.</b> Karar verilmiş, takvimde olan şeyler: <i>Cuma günü Madrid'e gideceğim, biletimi aldım</i> → <b class="ira">Voy a ir</b> a Madrid el viernes. Türkçede şimdiki zamanla da söyleyebiliyorsan (<i>Cuma günü Madrid'e gidiyorum</i>), bu bir plandır → <b class="ira">ir a</b>.</li>
+      <li><b class="fut">Futuro = tahmin, söz, uzak gelecek.</b> <i>2050'de dünya daha sıcak olacak</i> → En 2050 el mundo <b class="fut">será</b> más caliente. <i>Bence, herhalde, muhtemelen… olacak</i> → futuro.</li>
+    </ul>
+    <p><b>Dikkat:</b> <i>-se / -sa</i> (eğer) cümlesinde İspanyolcada <b class="pre">şimdiki zaman</b> kullanılır: <i>Yağmur yağarsa…</i> → Si <b class="pre">llueve</b>… (asla <i>si lloverá</i>). Sonuç kısmı futuro: <i>…evde kalacağım</i> → <b class="fut">me quedaré</b> en casa.</p>
+  </div>
+</section>
+
+<section id="forma">
+  <h2>A · La forma correcta</h2>
+  <p class="lead">Una opción tiene un error de forma. Toca la buena; debajo aparece el motivo. Los <span class="tm">marcadores temporales</span> están resaltados, con su significado en inglés.</p>
+  <div class="list" id="listA"></div>
+</section>
+
+<section id="natural">
+  <h2>B · ¿Plan o predicción?</h2>
+  <p class="lead">Aquí las dos formas existen, pero en cada frase una suena mucho más natural. Pregúntate: ¿ya está decidido o lo veo venir? → <b class="ira">ir a</b>. ¿Lo imagino, lo predigo o lo prometo? → <b class="fut">futuro</b>.</p>
+  <div class="list" id="listB"></div>
+</section>
+
+<section id="historias">
+  <h2>C · Mini-historias</h2>
+  <p class="lead">Escribe el verbo en la forma que pide la pista. Las tildes cuentan: si solo falta la tilde, se marca en amarillo.</p>
+  <div id="storiesC" class="story"></div>
+</section>
+
+<section id="si">
+  <h2>D · Si…, …</h2>
+  <p class="lead">La condición va en <b class="pre">presente</b>; la consecuencia, en <b class="fut">futuro</b>. Estas frases te sirven directamente para las recomendaciones del artículo.</p>
+  <div class="card story" data-group="D"><div class="list" id="listD"></div></div>
+</section>
+
+<section id="tarjetas">
+  <h2>E · Tarjetas de memoria</h2>
+  <p class="lead" lang="en">Say it in Spanish, then tap the card to check.</p>
+  <div class="deck" id="deck">
+    <div class="deck-nav">
+      <button type="button" class="btn ghost" id="dPrev" aria-label="Tarjeta anterior">‹ Anterior</button>
+      <span id="dPos" aria-live="polite"></span>
+      <button type="button" class="btn ghost" id="dNext" aria-label="Tarjeta siguiente">Siguiente ›</button>
+    </div>
+    <button type="button" class="flip" id="card" aria-pressed="false"><span class="in"><span class="face front"><span class="lang" id="cLang"></span><span class="en" id="cQ"></span><small>Toca para ver el español</small></span><span class="face back" aria-hidden="true"><span class="es" id="cA"></span><span id="cT"></span><small id="cW"></small></span></span></button>
+    <div class="deck-foot">
+      <div class="actions" id="dMark"><span class="msg">¿La sabías?</span><button type="button" class="btn ghost" data-mark="no">Todavía no</button><button type="button" class="btn" data-mark="ok">¡Sí!</button></div>
+      <span class="msg" id="dTally"></span>
+    </div>
+    <div class="card" id="deckDone" hidden><h3>¡Mazo terminado!</h3><p id="doneTxt"></p><div class="actions"><button type="button" class="btn" id="dMiss">Repasar las que fallé</button><button type="button" class="btn ghost" id="dAll">Barajar todo de nuevo</button></div></div>
+  </div>
+</section>
+
+<section id="planeta">
+  <h2>F · El planeta en 9 problemas</h2>
+  <p class="lead">Lo básico para tener ideas en el examen. Cada problema: qué es, qué está bien (✓) y qué está mal (✗), y cómo lo puedes contar desde tu vida.</p>
+  <div class="card tr" lang="tr">
+    <div class="eyebrow">Türkçe özet · Neden önemli?</div>
+    <p>Petrol, doğalgaz ve kömür yaktığımızda havaya <b>CO₂</b> (karbondioksit) salıyoruz. Bu gaz dünyayı ısıtıyor: <b>küresel ısınma</b>. Sonuçları: sıcak hava dalgaları, kuraklık, orman yangınları, seller. Sürdürülebilirlik (<i>sostenibilidad</i>) şu demek: bugün yaşarken gelecekteki insanların kaynaklarını tüketmemek. Sınavda büyük çözümler beklenmiyor; öğrencilerin her gün yapabileceği küçük, pratik şeyler yeterli.</p>
+  </div>
+  <div class="prob" id="probF"></div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Español</th><th>English</th><th>Türkçe</th></tr></thead>
+      <tbody id="vocF"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="bienmal">
+  <h2>G · ¿Bien o mal para el planeta?</h2>
+  <p class="lead">Decide y luego lee por qué. Algunas son de tu vida en Londres y en Estambul.</p>
+  <div class="list" id="listG"></div>
+</section>
+
+<section id="corrige">
+  <h2>H · ¿Correcta o incorrecta?</h2>
+  <p class="lead">Son los errores que más se ven en este examen. Decide y luego mira la explicación.</p>
+  <div class="list" id="listH"></div>
+</section>
+
+<section id="articulo">
+  <h2>I · El artículo del examen</h2>
+  <p class="lead">Task 1 · 30 puntos · 200–250 palabras · escrito a mano. Lo que pase de 250 palabras no se corrige.</p>
+  <div class="card" style="display:grid;gap:10px">
+    <h3>La tarea, en claro</h3>
+    <p>Una universidad de Madrid hace una campaña de concienciación sobre la sostenibilidad. Escribe un artículo corto para el boletín <i lang="en">(newsletter)</i> de este mes. Tiene que tener:</p>
+    <ol style="margin:0;padding-left:1.3em;display:grid;gap:4px">
+      <li><b>Saludo + introducción</b>: el tema y por qué es importante para tu comunidad.</li>
+      <li><b>Problemas</b> de sostenibilidad que <b>has observado</b> en tu ciudad, universidad o comunidad.</li>
+      <li><b>Recomendaciones prácticas</b>: qué pueden hacer los estudiantes y la gente en general.</li>
+      <li><b>Conclusión</b>.</li>
+    </ol>
+    <p>Y además: <b>conectores</b>, <b>párrafos</b> y la gramática del curso. Cada punto que falte resta.</p>
+  </div>
+  <div class="steps">
+    <div class="card"><span class="t">0–5'</span><span>Plan: elige 2 problemas y 3 recomendaciones. Apunta los verbos.</span></div>
+    <div class="card"><span class="t">5–30'</span><span>Escribe 4 párrafos: ~40 + 70 + 80 + 40 palabras.</span></div>
+    <div class="card"><span class="t">30–37'</span><span>Revisa con la lista: concordancias, tildes, <i>a</i> de <i>ir a</i>.</span></div>
+    <div class="card"><span class="t">37–40'</span><span>Cuenta palabras. Entre 200 y 250.</span></div>
+  </div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Párrafo</th><th>Frases útiles</th><th>Gramática que suma</th></tr></thead>
+      <tbody>
+        <tr><td><b>Título</b></td><td>Pequeños cambios, gran diferencia · ¿Y tú qué vas a hacer por el planeta? · Un campus más verde</td><td>Corto, sin punto final.</td></tr>
+        <tr><td><b>1 · Saludo e introducción</b></td><td>¡Hola a todos y a todas! / ¡Hola, compañeros y compañeras! · En este artículo <b class="ira">voy a hablar</b> sobre… · Actualmente / Hoy en día… · Es un tema muy importante porque…</td><td><span class="tag ira">ir a</span> presente, <i>porque</i></td></tr>
+        <tr><td><b>2 · Problemas</b></td><td>En mi universidad / ciudad <span class="pp">he observado</span> que… · Hay demasiado plástico / demasiados coches · Mucha gente tira… · El problema más grave es… · En primer lugar… Además…</td><td>pretérito perfecto, <i>hay</i>, <i>demasiado/a/os/as</i>, <i>la gente</i> + singular</td></tr>
+        <tr><td><b>3 · Recomendaciones</b></td><td>Los estudiantes podemos… · Tenemos que / Hay que + infinitivo · Deberíamos… · Es importante + infinitivo · En vez de… · Si <b class="pre">usamos</b>…, <b class="fut">ahorraremos</b>…</td><td><span class="tag pre">si + presente</span> <span class="tag fut">futuro</span> <span class="tag rec">poder / tener que / hay que</span></td></tr>
+        <tr><td><b>4 · Conclusión</b></td><td>En conclusión / En resumen / Para concluir… · Si todos <b class="pre">hacemos</b> algo, el planeta <b class="fut">será</b>… · Yo <b class="ira">voy a</b>… ¿Y tú?</td><td><span class="tag fut">futuro</span> <span class="tag ira">ir a</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Conector</th><th>Para qué</th><th>Ejemplo</th></tr></thead>
+      <tbody id="cnI"></tbody>
+    </table>
+  </div>
+  <div class="card model">
+    <div class="eyebrow">Modelo · <span id="mWords"></span> palabras · cada párrafo responde a un punto de la tarea</div>
+    <div class="legend" style="font-size:.85rem"><span><i class="dot ira"></i>ir a</span><span><i class="dot fut"></i>futuro</span><span><i class="dot pre"></i>si + presente</span><span><i class="dot" style="background:var(--warn)"></i>conector</span><span><span class="pp">subrayado</span>: pretérito perfecto</span></div>
+    <div id="modelI"></div>
+  </div>
+</section>
+
+<section id="completa">
+  <h2>J · Completa el artículo</h2>
+  <p class="lead">Otro modelo, ahora sobre Bebek. Elige los conectores y escribe los verbos.</p>
+  <div class="card story" data-group="J"><h3>Un Bósforo sin plástico</h3><div id="textJ"></div></div>
+</section>
+
+<section id="escribe">
+  <h2>K · Escribe tu artículo</h2>
+  <p class="lead">Como en el examen: 40 minutos, 200–250 palabras. El texto se guarda en este navegador.</p>
+  <details class="card"><summary>Ideas desde tu vida</summary><ul>
+    <li>Problemas en King's: botellas y vasos de un solo uso en el Strand, comida que se tira en la residencia, luces encendidas toda la noche en las aulas, Ubers para trayectos de 10 minutos.</li>
+    <li>Problemas en Londres: contaminación del aire, tráfico, moda rápida en Oxford Street, envases de Deliveroo.</li>
+    <li>Problemas en Estambul: tráfico en el Bósforo y en los puentes, basura en el paseo de Bebek en verano, embalses bajos y falta de agua, incendios forestales cerca de Bodrum.</li>
+    <li>Recomendaciones: botella y taza reutilizables, metro o andando, ropa de segunda mano (Brick Lane, Vinted), planificar la compra, menos carne de vaca, duchas cortas, tren en vez de avión dentro de Europa.</li>
+  </ul></details>
+  <div class="card" style="display:grid;gap:12px">
+    <div class="wbar"><span id="timer">40:00</span><button type="button" class="btn" id="tGo">Empezar</button><button type="button" class="btn ghost" id="tReset">Reiniciar reloj</button><span class="wc low" id="wc">0 palabras</span></div>
+    <textarea id="draft" lang="es" spellcheck="false" placeholder="Título&#10;&#10;¡Hola a todos y a todas! En este artículo voy a hablar sobre…"></textarea>
+    <h3>Antes de entregar</h3>
+    <ul class="checks" id="checksK"></ul>
+  </div>
+</section>
+
+<footer>Español intermedio · Ir a + infinitivo y futuro · Sostenibilidad · King's College London, formative Part 4 (writing)</footer>
+</div>
+
+<script>
+const R={
+  ga:["ira","Ir + a + infinitivo: la «a» es obligatoria"],
+  pr:["ira","Plan: ir a + infinitivo. Estar + gerundio no es futuro en español"],
+  p:["ira","Plan ya decidido"],
+  v:["ira","Lo ves venir: hay una señal ahora"],
+  i:["ira","Intención: lo que has decidido hacer"],
+  h2:["ira","Va a haber: «haber» no tiene plural"],
+  f:["fut","Predicción"],
+  l:["fut","Futuro lejano o imaginado"],
+  m:["fut","Promesa"],
+  c:["fut","Opinión o suposición sobre el futuro"],
+  s:["fut","Consecuencia de «si»: futuro"],
+  irr:["fut","Futuro irregular: la raíz cambia"],
+  inf:["fut","Futuro regular: infinitivo entero + terminación"],
+  hab:["fut","Habrá: «haber» no tiene plural"],
+  x:["pre","Después de «si»: presente, nunca futuro"],
+  rec:["pre","Recomendación: poder / tener que + infinitivo"],
+  cA:["cn","Añade otra idea"],
+  cC:["cn","Contraste: dos ideas opuestas"],
+  cK:["cn","Consecuencia: «por eso» = this is why"],
+  cO:["cn","Ordena: la primera idea de una lista"],
+  cF:["cn","Cierra el texto"]
+};
+const TNAME={ira:"Ir a",fut:"Futuro",pre:"Presente",cn:"Conector"};
+const blanks={}; let n=0;
+
+function parse(tpl){
+  return tpl.replace(/\{([^}]+)\}/g,(m,body)=>{
+    const id="b"+(++n);
+    if(body.includes("=")){
+      const [v,rest]=body.split("="); const [ans,r]=rest.split("|");
+      const list=ans.split("/");
+      const w=Math.max(...list.map(s=>s.length))+2;
+      blanks[id]={type:"fill",ans:list,r,status:null};
+      return `<span class="fill"><span class="hint">(${v})</span><input id="${id}" aria-label="${v}" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:${w}ch"><span class="fix" id="${id}f"></span></span>`;
+    }
+    const p=body.split("|"); const r=p.pop(); const ci=+p.pop();
+    blanks[id]={type:"choice",ci,opts:p,r,status:null};
+    return `<span class="ch" id="${id}">`+p.map((o,i)=>`<button type="button" data-b="${id}" data-i="${i}">${o}</button>`).join("")+`</span>`;
+  });
+}
+const tm=t=>t.replace(/\[([^|\]]+)\|([^\]]+)\]/g,'<span class="tm">$1 <i lang="en">($2)</i></span>');
+const choiceList=(el,items)=>{document.getElementById(el).innerHTML=items.map(t=>`<div class="q"><div>${tm(parse(t))}</div><div class="why"></div></div>`).join("")};
+
+/* A · forma */
+choiceList("listA",[
+"[Esta noche|tonight] {voy a cenar|voy cenar|0|ga} con Elif en Soho.",
+"[El mes que viene|next month] mis padres {van venir|van a venir|1|ga} a Londres.",
+"[En 2050|in 2050] {haceremos|haremos|1|irr} casi todo con energía solar.",
+"[Algún día|someday] {tendré|teneré|0|irr} una casa en Bodrum con placas solares.",
+"[Dentro de diez años|in ten years] {habrán|habrá|1|hab} más coches eléctricos en Estambul.",
+"[Si|if] {llueve|lloverá|0|x} mañana, iremos a clase en metro.",
+"[El viernes|on Friday] {estoy volando|voy a volar|1|pr} a Estambul.",
+"Te lo prometo: [nunca más|never again] {pondré|poneré|0|irr} el aire acondicionado a 18 grados.",
+"[Mañana|tomorrow] {saliré|saldré|1|irr} temprano para no coger un Uber.",
+"Mi hermana dice que {vendrá|venirá|0|irr} a verme [en diciembre|in December].",
+"¿Qué {decirán|dirán|1|irr} mis amigas si llevo ropa de segunda mano?",
+"[En el futuro|in the future] {va a haber|van a haber|0|h2} menos agua en Estambul.",
+"[Si|if] {compraremos|compramos|1|x} menos ropa, {produciremos|produceremos|0|inf} menos basura.",
+"¿Qué {vas hacer|vas a hacer|1|ga} [este fin de semana|this weekend]?",
+"Creo que [la semana que viene|next week] {hará|hacerá|0|irr} mucho calor en Madrid.",
+"Sin agua, no {poderemos|podremos|1|irr} vivir en algunas ciudades."
+]);
+
+/* B · natural */
+choiceList("listB",[
+"Ya tengo los billetes: [el viernes|on Friday] {voy a ir|iré|0|p} a Madrid.",
+"¡Cuidado! Ese vaso está en el borde de la mesa: se {va a caer|caerá|0|v}.",
+"Mira esas nubes negras: {va a llover|lloverá|0|v}.",
+"Te lo prometo, mamá: {estudiaré|voy a estudiar|0|m} todos los días.",
+"[Este fin de semana|this weekend] {voy a ordenar|ordenaré|0|p} mi armario y {voy a vender|venderé|0|p} en Vinted la ropa que no uso.",
+"Según los científicos, [en 2080|by 2080] Madrid {tendrá|va a tener|0|f} el clima de Marrakech.",
+"Creo que [en el futuro|in the future] la gente {comerá|va a comer|0|c} menos carne.",
+"Estoy agotada: [esta noche|tonight] {voy a pedir|pediré|0|i} sushi y {voy a ver|veré|0|i} una serie.",
+"He decidido algo: [a partir de ahora|from now on] {voy a ir|iré|0|i} a King's andando.",
+"¿Cómo {será|va a ser|0|l} el Bósforo [dentro de cien años|in a hundred years]?",
+"Mi amiga ya ha reservado mesa: [esta noche|tonight] {vamos a cenar|cenaremos|0|p} en un restaurante vegano.",
+"Seguramente nuestros nietos no {sabrán|van a saber|0|c} qué es una bolsa de plástico."
+]);
+
+/* C · historias */
+const C=[
+["El plan del finde · ir a",
+"¡Qué ganas! Este fin de semana {ir a + ir=voy a ir|p} a Madrid con Deniz. Ya tenemos los billetes: {nosotras, ir a + volar=vamos a volar|p} el viernes por la tarde. El sábado {nosotras, ir a + desayunar=vamos a desayunar|p} en el Retiro y por la tarde {yo, ir a + comprar=voy a comprar|i} ropa vintage en Malasaña. Deniz {ir a + visitar=va a visitar|p} el Prado, pero yo no. ¡Uf, mira el cielo de Londres! {ir a + llover=Va a llover|v} otra vez…"],
+["Londres en 2050 · futuro",
+"En 2050 Londres {ser=será|f} una ciudad diferente. {haber=Habrá|f} más parques y menos coches. La gente {ir=irá|f} a trabajar en bici y los autobuses {funcionar=funcionarán|f} con electricidad. Seguramente {hacer=hará|c} más calor en verano y {nosotros, tener=tendremos|f} que ahorrar agua. ¿Y yo? Yo {vivir=viviré|l} en Madrid y {poder=podré|f} ir a todas partes en metro."],
+["Mis promesas verdes · futuro irregular",
+"Este año, te lo prometo: {yo, hacer=haré|m} la compra con mi propia bolsa, no {poner=pondré|m} la calefacción a 25 grados y {salir=saldré|m} de la ducha en cinco minutos. Mis amigas {decir=dirán|c} que estoy loca, pero no me importa. Mi madre {venir=vendrá|f} a Londres en Navidad y no {creer=creerá|f} lo que ve. Al final del año {yo, saber=sabré|f} cuánto dinero he ahorrado."]
+];
+document.getElementById("storiesC").innerHTML=C.map(([h,t],k)=>`<div class="card story" data-group="C${k}"><h3>${h}</h3><p>${parse(t)}</p>${actions()}</div>`).join("");
+
+/* D · si */
+const D=[
+"Si {nosotros, usar=usamos|x} el metro, {contaminar=contaminaremos|s} menos.",
+"Si {tú, comprar=compras|x} ropa de segunda mano, {ahorrar=ahorrarás|s} dinero.",
+"Si la universidad {poner=pone|x} más fuentes de agua, los estudiantes no {comprar=comprarán|s} botellas de plástico.",
+"Si no {nosotros, hacer=hacemos|x} nada, en 2050 {haber=habrá|s} más olas de calor.",
+"Si {tú, planificar=planificas|x} la compra, {tirar=tirarás|s} menos comida.",
+"Si {yo, ir=voy|x} a París, {tomar=tomaré|s} el tren y no el avión.",
+"Si todos {nosotros, apagar=apagamos|x} las luces, la residencia {gastar=gastará|s} menos energía."
+];
+document.getElementById("listD").innerHTML=D.map(t=>`<div class="q">${parse(t)}</div>`).join("");
+document.querySelector('[data-group="D"]').insertAdjacentHTML("beforeend",actions());
+
+function actions(){return `<div class="actions"><button type="button" class="btn" data-act="check">Comprobar</button><button type="button" class="btn ghost" data-act="show">Ver soluciones</button><span class="msg"></span></div>`}
+
+/* F · problemas */
+const F=[
+["El cambio climático","climate change · iklim değişikliği",
+ "Al quemar petróleo, gas y carbón emitimos CO₂. Este gas calienta la Tierra: hay más olas de calor, sequías, incendios e inundaciones, y sube el nivel del mar.",
+ ["energía solar y eólica","transporte público","menos vuelos"],["quemar combustibles fósiles","vuelos cortos y frecuentes","coches grandes para una persona"],
+ "Los veranos en Madrid ya pasan de 40 °C y en 2021 hubo grandes incendios cerca de Bodrum y Marmaris."],
+["La contaminación del aire","air pollution · hava kirliliği",
+ "Los coches, los camiones y las calefacciones ensucian el aire. Es malo para los pulmones, sobre todo en las grandes ciudades.",
+ ["andar, ir en bici o en metro","coches eléctricos","zonas de bajas emisiones"],["coger un taxi o un Uber para todo","atascos diarios"],
+ "Londres tiene la ULEZ y Madrid sus zonas de bajas emisiones. En Estambul, el tráfico de los puentes es enorme."],
+["El plástico","plastic waste · plastik atık",
+ "Usamos botellas, vasos y bolsas solo unos minutos, pero el plástico tarda cientos de años en desaparecer. Mucho acaba en el mar.",
+ ["botella y taza reutilizables","bolsa de tela","separar la basura"],["botellas de un solo uso","cubiertos de plástico del delivery"],
+ "¿Cuántos cafés para llevar compras en el Strand cada semana?"],
+["La moda rápida","fast fashion · hızlı moda",
+ "Ropa barata que se usa poco y se tira rápido. Para fabricarla hacen falta muchísima agua y energía, y montañas de ropa acaban en la basura.",
+ ["comprar menos y mejor","segunda mano y vintage","alquilar un vestido para una fiesta","arreglar la ropa"],["comprar veinte prendas en un día","ropa para una sola foto"],
+ "Brick Lane y Vinted son buenas ideas; Oxford Street los sábados, no tanto."],
+["El desperdicio de comida","food waste · gıda israfı",
+ "En el mundo se tira casi un tercio de la comida. Producir esa comida gasta agua, tierra y energía para nada.",
+ ["planificar la compra","usar las sobras","comer productos de temporada y de cerca"],["tirar comida","comprar más de lo que vas a comer"],
+ "En las residencias se tira mucha comida al final de cada semana."],
+["La carne","meat · et tüketimi",
+ "La carne de vaca produce mucho más CO₂ que las verduras o las legumbres, porque las vacas necesitan mucha comida, agua y tierra.",
+ ["menos carne roja","más legumbres, verduras y pescado","platos vegetarianos algunos días"],["carne de vaca todos los días"],
+ "No hace falta ser vegana: con dos o tres días sin carne a la semana ya hay diferencia."],
+["El agua","water · su kıtlığı",
+ "Con el calor llueve menos y hay sequías. Algunas ciudades tienen problemas de agua en verano.",
+ ["duchas cortas","cerrar el grifo","lavadora llena"],["duchas de veinte minutos","regar a mediodía"],
+ "En los últimos años los embalses de Estambul han estado muy bajos, y en España hay sequías frecuentes."],
+["La energía en casa","energy at home · evde enerji",
+ "Calentar y enfriar las casas gasta mucha energía, y gran parte viene todavía del gas.",
+ ["calefacción a 19–21 °C","apagar luces y aparatos","cerrar las ventanas con la calefacción puesta"],["el aire acondicionado a 18 °C","luces encendidas toda la noche"],
+ "En King's, ¿cuántas aulas ves con la luz encendida por la noche?"],
+["El lavado verde","greenwashing · yeşil aklama",
+ "Algunas marcas dicen «eco» o «verde» en la publicidad, pero no cambian casi nada. Es marketing, no sostenibilidad.",
+ ["mirar los certificados y de qué está hecho","preguntar «¿de verdad?»"],["creer cualquier etiqueta verde"],
+ "Una colección «consciente» de una tienda de moda rápida sigue siendo moda rápida."]
+];
+document.getElementById("probF").innerHTML=F.map(([t,s,d,y,no,you])=>`<div class="card"><h3>${t}</h3><span class="sub" lang="en">${s}</span><p>${d}</p><ul class="gb">${y.map(x=>`<li class="y">${x}</li>`).join("")}${no.map(x=>`<li class="n">${x}</li>`).join("")}</ul><p class="you">${you}</p></div>`).join("");
+const V=[
+["la sostenibilidad","sustainability","sürdürülebilirlik"],["el medio ambiente","the environment","çevre"],
+["el calentamiento global","global warming","küresel ısınma"],["las emisiones de CO₂","CO₂ emissions","CO₂ salımı"],
+["la huella de carbono","carbon footprint","karbon ayak izi"],["los combustibles fósiles","fossil fuels","fosil yakıtlar"],
+["las energías renovables","renewable energy","yenilenebilir enerji"],["contaminar / la contaminación","to pollute / pollution","kirletmek / kirlilik"],
+["reciclar / el reciclaje","to recycle / recycling","geri dönüştürmek / geri dönüşüm"],["los residuos, la basura","waste, rubbish","atık, çöp"],
+["de un solo uso","single-use","tek kullanımlık"],["reutilizable","reusable","yeniden kullanılabilir"],
+["el envase","packaging","ambalaj"],["ahorrar agua / energía","to save water / energy","su / enerji tasarrufu yapmak"],
+["desperdiciar, tirar","to waste, to throw away","israf etmek, atmak"],["la sequía","drought","kuraklık"],
+["la ola de calor","heatwave","sıcak hava dalgası"],["el transporte público","public transport","toplu taşıma"],
+["de segunda mano","second-hand","ikinci el"],["concienciar / la concienciación","to raise awareness / awareness","farkındalık yaratmak / farkındalık"]
+];
+document.getElementById("vocF").innerHTML=V.map(([a,b,c])=>`<tr><td><b>${a}</b></td><td lang="en">${b}</td><td lang="tr">${c}</td></tr>`).join("");
+
+/* G, H · binary sets: [sentence, true?, correction, why] */
+const BIN={
+G:{yes:"Bien",no:"Mal",items:[
+["Voy a Bodrum en avión tres fines de semana seguidos.",false,"","Los vuelos cortos y frecuentes son una de las cosas que más CO₂ produce una persona."],
+["Llevo mi botella reutilizable a clase.",true,"","Una botella reutilizable evita cientos de botellas de plástico al año."],
+["Me compro un vestido para una fiesta y no me lo pongo nunca más.",false,"","Es moda rápida. Mejor alquilarlo, pedirlo prestado o ponérselo más veces."],
+["Compro ropa vintage en Brick Lane.",true,"","La ropa de segunda mano no necesita fabricarse otra vez: cero agua y energía nuevas."],
+["Pido Deliveroo todos los días y tiro los envases a la basura general.",false,"","Muchísimo envase de un solo uso, y sin reciclar."],
+["Pongo el aire acondicionado a 18 grados en verano.",false,"","Gasta mucha energía. Con 24–26 °C basta."],
+["Voy de King's a Covent Garden andando.",true,"","Son diez minutos: cero emisiones y además haces ejercicio."],
+["Como fresas de Chile en diciembre.",false,"","Fruta fuera de temporada que viaja miles de kilómetros, a veces en avión."],
+["Me ducho en cinco minutos.",true,"","Ahorras agua y la energía para calentarla."],
+["Tiro el pan de ayer.",false,"","Es desperdicio de comida. Se puede tostar o congelar."],
+["Tomo el tren de Londres a París en vez del avión.",true,"","El tren emite mucho menos CO₂ por persona que el avión."],
+["Una marca dice «eco» en la etiqueta, así que seguro que es sostenible.",false,"","Puede ser lavado verde (greenwashing): mira los certificados y el material."],
+["Apago las luces y la calefacción cuando salgo de casa.",true,"","Energía que no se gasta = menos CO₂ y una factura más baja."],
+["Cojo un Uber para ir a 500 metros.",false,"","Un coche para un trayecto que se hace andando en seis minutos."],
+["Como menos carne de vaca y más legumbres.",true,"","La carne de vaca es uno de los alimentos con más huella de carbono."],
+["Compro una botella de agua de plástico cada día en el campus.",false,"","365 botellas al año. Mejor una reutilizable y las fuentes de agua."]
+]},
+H:{yes:"Correcta",no:"Incorrecta",items:[
+["Si lloverá mañana, no iremos a clase.",false,"Si <b class='pre'>llueve</b> mañana, no iremos a clase.","Después de «si» va el presente, nunca el futuro. El futuro va en la otra parte."],
+["En el futuro habrán más coches eléctricos.",false,"En el futuro <b class='fut'>habrá</b> más coches eléctricos.","«Haber» (hay) no tiene plural: hay → habrá, aunque hablemos de muchos coches."],
+["Voy reciclar más.",false,"<b class='ira'>Voy a reciclar</b> más.","Ir + a + infinitivo: sin la «a» la estructura no existe."],
+["Mañana estoy volando a Estambul.",false,"Mañana <b class='ira'>voy a volar</b> / vuelo a Estambul.","En inglés «I'm flying» es futuro; en español, estar + gerundio es solo lo que pasa ahora."],
+["Hay que reciclamos más.",false,"Hay que <b>reciclar</b> más.","Después de «hay que» va siempre el infinitivo."],
+["Deberíamos usar más el transporte público.",true,"","Deber + infinitivo, sin preposición."],
+["Es importante que reciclar.",false,"Es importante <b>reciclar</b>.","Es importante + infinitivo, sin «que». (Es importante que + subjuntivo es otra estructura.)"],
+["La gente tiran mucha comida.",false,"La gente <b>tira</b> mucha comida.","«La gente» es singular en español, aunque en inglés sea «people are»."],
+["En 2050 haceremos todo con energía limpia.",false,"En 2050 <b class='fut'>haremos</b> todo con energía limpia.","Hacer es irregular en futuro: haré, harás, hará, haremos…"],
+["Creo que la universidad pondrá más fuentes de agua.",true,"","Creo que + futuro para una opinión sobre el futuro. Poner → pondré."],
+["Los estudiantes pueden ayudar a reducir el plástico.",true,"","Poder + infinitivo; ayudar a + infinitivo."],
+["Me gustaría a vivir en Madrid.",false,"Me gustaría <b>vivir</b> en Madrid.","Me gustaría + infinitivo, sin «a»."],
+["En este artículo voy a hablar sobre la sostenibilidad.",true,"","Perfecta para empezar: ir a + infinitivo para lo que vas a hacer en el texto."],
+["Todos podemos hacer algo para ayudar el planeta.",false,"Todos podemos hacer algo para ayudar <b>al</b> planeta.","Ayudar a + persona o cosa: a + el = al."],
+["Hay demasiados coches, por eso el aire está contaminado.",true,"","«Por eso» une la causa con la consecuencia. «Demasiados» concuerda con «coches»."],
+["Muchas personas no reciclan, sin embargo es muy fácil.",true,"","«Sin embargo» presenta una idea contraria. Mejor aún con punto y coma: «…no reciclan; sin embargo, es muy fácil»."]
+]}};
+const bState={G:{},H:{}};
+for(const k of ["G","H"]){
+  document.getElementById("list"+k).innerHTML=BIN[k].items.map(([s],i)=>`<div class="q" data-set="${k}" data-e="${i}"><div>${s}</div><div class="e-btns"><button type="button" data-v="1">${BIN[k].yes}</button><button type="button" data-v="0">${BIN[k].no}</button></div><div class="reveal" hidden></div></div>`).join("");
+}
+
+/* I · conectores y modelo */
+const CN=[
+["y, también, además","añadir una idea","Hay mucho tráfico. <b>Además</b>, el aire está contaminado."],
+["pero, sin embargo","contraste","Es cómodo; <b>sin embargo</b>, contamina mucho."],
+["aunque","contraste dentro de la frase","<b>Aunque</b> es más lento, prefiero el tren."],
+["porque","causa","Es importante <b>porque</b> afecta a todos."],
+["por eso, así que","consecuencia","Hay sequía; <b>por eso</b> tenemos que ahorrar agua."],
+["en primer lugar, en segundo lugar, por último","ordenar ideas","<b>En primer lugar</b>, muchos estudiantes…"],
+["por ejemplo","dar un ejemplo","<b>Por ejemplo</b>, podemos llevar una taza."],
+["en vez de","alternativa","Ve andando <b>en vez de</b> coger un Uber."],
+["en conclusión, en resumen, para concluir","cerrar","<b>En resumen</b>, los pequeños cambios importan."]
+];
+document.getElementById("cnI").innerHTML=CN.map(([a,b,c])=>`<tr><td><b>${a}</b></td><td>${b}</td><td>${c}</td></tr>`).join("");
+const M=[
+["Título","<h3>Pequeños cambios, gran diferencia</h3>"],
+["1 · Saludo e introducción","¡Hola a todos y a todas! En este artículo <b class='ira'>voy a hablar</b> sobre la sostenibilidad. <span class='cn'>Actualmente</span> es un tema muy importante <span class='cn'>porque</span> el planeta se está calentando y, si no <b class='pre'>hacemos</b> nada, el futuro <b class='fut'>será</b> más difícil para nuestra generación."],
+["2 · Problemas que he observado","Vivo en Londres y estudio en King's College. En mi universidad <span class='pp'>he observado</span> varios problemas. <span class='cn'>En primer lugar</span>, muchos estudiantes compran todos los días una botella de plástico o un café en un vaso de un solo uso. <span class='cn'>Por eso</span> las papeleras del Strand siempre están llenas de vasos. <span class='cn'>Además</span>, en las residencias la gente tira mucha comida. En Estambul, mi ciudad, <span class='cn'>también</span> hay demasiado tráfico y el aire está muy contaminado."],
+["3 · Recomendaciones","<span class='cn'>Sin embargo</span>, todos podemos hacer algo. <span class='cn'>Por ejemplo</span>, podemos llevar una botella reutilizable y nuestra propia taza. Es importante planificar la compra para no tirar comida. <span class='cn'>Además</span>, deberíamos ir a clase andando o en metro: <span class='cn'>aunque</span> es cómodo, no hace falta coger un Uber para todo. Si <b class='pre'>compramos</b> ropa de segunda mano, <b class='fut'>ahorraremos</b> dinero y <b class='fut'>produciremos</b> menos residuos. Yo, este año, <b class='ira'>voy a volar</b> menos y <b class='ira'>voy a viajar</b> en tren por Europa."],
+["4 · Conclusión","<span class='cn'>En conclusión</span>, la sostenibilidad no es solo responsabilidad de los gobiernos. No podemos hacerlo todo, pero sí podemos hacer algo. Si cada estudiante <b class='pre'>cambia</b> un pequeño hábito, <b class='fut'>habrá</b> menos contaminación y nuestras ciudades <b class='fut'>serán</b> mejores. ¿Empezamos hoy?"]
+];
+document.getElementById("modelI").innerHTML=M.map(([l,h])=>`<div><span class="pn">${l}</span>${h.startsWith("<h3")?h:`<p>${h}</p>`}</div>`).join("");
+const words=s=>(s.replace(/<[^>]+>/g," ").match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9'’]+/g)||[]).length;
+document.getElementById("mWords").textContent=M.slice(1).reduce((a,[,h])=>a+words(h),0);
+
+/* J · completa */
+document.getElementById("textJ").innerHTML=[
+"¡Hola, compañeros y compañeras! Me llamo Eda y soy de Estambul. Hoy {ir a + hablar=voy a hablar|p} de un problema de mi barrio, Bebek.",
+"{Aunque|Por eso|0|cC} es un barrio precioso, en verano hay mucha basura en el paseo junto al Bósforo. {Además|Sin embargo|0|cA}, muchos cafés usan vasos de plástico. Los fines de semana hay muchísimo tráfico, {por eso|aunque|0|cK} el aire está contaminado. Creo que el próximo verano la situación {ser=será|c} peor si no {nosotros, hacer=hacemos|x} nada.",
+"¿Qué podemos hacer? {En primer lugar|En conclusión|0|cO}, los cafés {poder=pueden|rec} usar vasos reutilizables. {También|Sin embargo|0|cA} es importante ir en ferry o en metro, no en coche. Si los vecinos {organizar=organizan|x} una limpieza del paseo cada mes, Bebek {estar=estará|s} más limpio. Yo ya me he apuntado: {ir a + participar=voy a participar|p} en la próxima.",
+"{En conclusión|Por ejemplo|0|cF}, si todos {nosotros, ayudar=ayudamos|x} un poco, el Bósforo {tener=tendrá|s} un futuro mejor."
+].map(p=>`<p>${parse(p)}</p>`).join("")+actions();
+
+/* E · tarjetas: [en, tr, es, tag, why] */
+const H=[
+["I'm going to buy a reusable bottle.","Tekrar kullanılabilir bir şişe alacağım.","<b class='ira'>Voy a comprar</b> una botella reutilizable.","ira","Intención: ir a + infinitivo."],
+["In 2050 it will be hotter in Istanbul.","2050'de İstanbul'da hava daha sıcak olacak.","En 2050 <b class='fut'>hará</b> más calor en Estambul.","fut","Predicción. Hacer → haré."],
+["There will be less water.","Daha az su olacak.","<b class='fut'>Habrá</b> menos agua.","fut","Hay → habrá, siempre singular."],
+["If we use public transport, we will pollute less.","Toplu taşıma kullanırsak daha az kirletiriz.","Si <b class='pre'>usamos</b> el transporte público, <b class='fut'>contaminaremos</b> menos.","si","Si + presente, futuro."],
+["We should eat less meat.","Daha az et yemeliyiz.","<b>Deberíamos</b> comer menos carne.","rec","Recomendación: deberíamos + infinitivo."],
+["You have to recycle plastic.","Plastiği geri dönüştürmen gerekiyor.","<b>Tienes que</b> reciclar el plástico.","rec","Obligación: tener que + infinitivo."],
+["It's important to turn off the lights.","Işıkları kapatmak önemli.","<b>Es importante</b> apagar las luces.","rec","Es importante + infinitivo, sin «que»."],
+["Look at those clouds: it's going to rain.","Şu bulutlara bak: yağmur yağacak.","Mira esas nubes: <b class='ira'>va a llover</b>.","ira","Lo ves venir: ir a."],
+["I'm flying to Bodrum on Friday.","Cuma günü Bodrum'a uçuyorum.","El viernes <b class='ira'>voy a volar</b> a Bodrum.","ira","Plan. Nunca «estoy volando» para el futuro."],
+["I promise I'll take shorter showers.","Söz veriyorum, daha kısa duş alacağım.","Te prometo que <b class='fut'>me ducharé</b> más rápido.","fut","Promesa: futuro."],
+["Fast fashion produces a lot of waste.","Hızlı moda çok fazla atık üretiyor.","La moda rápida produce muchos residuos.","voc","fast fashion = moda rápida; waste = residuos."],
+["Climate change is one of the biggest problems in the world.","İklim değişikliği dünyanın en büyük sorunlarından biri.","El cambio climático es uno de los mayores problemas del mundo.","voc","uno de los + plural."],
+["In my residence, people throw away a lot of food.","Yurdumda insanlar çok fazla yemek atıyor.","En mi residencia la gente <b>tira</b> mucha comida.","voc","La gente + verbo en singular."],
+["I've noticed that there is a lot of plastic on campus.","Kampüste çok fazla plastik olduğunu fark ettim.","<b>He observado</b> que hay mucho plástico en el campus.","voc","Pretérito perfecto: lo que has visto."],
+["One day I will live in Madrid.","Bir gün Madrid'de yaşayacağım.","Algún día <b class='fut'>viviré</b> en Madrid.","fut","Futuro lejano o imaginado."],
+["Tonight I'm going to cook at home.","Bu akşam evde yemek yapacağım.","Esta noche <b class='ira'>voy a cocinar</b> en casa.","ira","Plan para hoy: ir a."],
+["Air pollution in London is a serious problem.","Londra'da hava kirliliği ciddi bir sorun.","La contaminación del aire en Londres es un problema grave.","voc","pollution = contaminación."],
+["I think the university will install more water fountains.","Bence üniversite daha fazla su çeşmesi koyacak.","Creo que la universidad <b class='fut'>pondrá</b> más fuentes de agua.","fut","Creo que + futuro. Poner → pondré."],
+["We can't do everything, but we can do something.","Her şeyi yapamayız ama bir şeyler yapabiliriz.","No podemos hacerlo todo, pero sí podemos hacer algo.","voc","Una frase perfecta para la conclusión."],
+["To sum up, small changes will make a big difference.","Özetle, küçük değişiklikler büyük bir fark yaratacak.","En resumen, los pequeños cambios <b class='fut'>marcarán</b> una gran diferencia.","fut","make a difference = marcar la diferencia."]
+];
+const HT={ira:"<span class='tag ira'>Ir a</span>",fut:"<span class='tag fut'>Futuro</span>",si:"<span class='tag pre'>Si + presente</span> <span class='tag fut'>Futuro</span>",rec:"<span class='tag rec'>Recomendación</span>",voc:"<span class='tag rec'>Vocabulario</span>"};
+const $=id=>document.getElementById(id), card=$("card");
+let order=[],pos=0;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startDeck(keys){order=shuffle(keys.map(k=>({k,tr:Math.random()<.5,mark:null})));pos=0;render()}
+function setFlip(on){card.classList.toggle("on",on);card.setAttribute("aria-pressed",on);card.querySelector(".front").setAttribute("aria-hidden",on);card.querySelector(".back").setAttribute("aria-hidden",!on)}
+function render(){
+  const end=pos>=order.length;
+  card.hidden=end;$("dMark").hidden=end;$("deckDone").hidden=!end;
+  $("dPrev").disabled=pos===0;$("dNext").disabled=end;
+  const ok=order.filter(c=>c.mark==="ok").length,no=order.filter(c=>c.mark==="no").length;
+  $("dTally").textContent=`✓ ${ok} · ✗ ${no}`;
+  if(end){$("dPos").textContent=`${order.length} / ${order.length}`;
+    $("doneTxt").textContent=no?`Sabías ${ok} de ${order.length}. Te faltan ${no} por repasar.`:`¡Sabías ${ok} de ${order.length}!`;
+    $("dMiss").hidden=!no;return}
+  $("dPos").textContent=`${pos+1} / ${order.length}`;
+  card.classList.add("instant");setFlip(false);
+  const c=order[pos],[en,tr,es,t,why]=H[c.k];
+  $("cLang").textContent=c.tr?"Türkçe":"English";$("cQ").textContent=c.tr?tr:en;$("cQ").lang=c.tr?"tr":"en";
+  $("cA").innerHTML=es+(c.mark?` <span class="mk ${c.mark}">${c.mark==="ok"?"✓ la sabías":"✗ a repasar"}</span>`:"");
+  $("cT").innerHTML=HT[t];$("cW").textContent=why;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>card.classList.remove("instant")));
+}
+const go=d=>{const n=pos+d;if(n<0||n>order.length)return;pos=n;render()};
+card.addEventListener("click",()=>{if(swiped){swiped=false;return}setFlip(!card.classList.contains("on"))});
+$("dPrev").addEventListener("click",()=>go(-1));
+$("dNext").addEventListener("click",()=>go(1));
+$("dMark").addEventListener("click",e=>{const b=e.target.closest("[data-mark]");if(!b)return;order[pos].mark=b.dataset.mark;go(1)});
+$("dMiss").addEventListener("click",()=>startDeck(order.filter(c=>c.mark==="no").map(c=>c.k)));
+$("dAll").addEventListener("click",()=>startDeck(H.map((_,k)=>k)));
+$("deck").addEventListener("keydown",e=>{if(e.key==="ArrowLeft"){go(-1);e.preventDefault()}else if(e.key==="ArrowRight"){go(1);e.preventDefault()}});
+let sx=null,sy=null,swiped=false;
+card.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+card.addEventListener("touchend",e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;sx=null;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){swiped=true;setTimeout(()=>swiped=false,400);go(dx<0?1:-1)}});
+startDeck(H.map((_,k)=>k));
+
+/* K · escribe */
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const KC=["Título","Saludo para el boletín (¡Hola a todos y a todas!)","Introducción: el tema y por qué importa","Problemas que he observado (he observado, hay demasiado…)","Recomendaciones para estudiantes y para la gente en general","Conclusión (En conclusión / En resumen…)","Al menos 5 conectores distintos","ir a + infinitivo y futuro, con al menos un irregular (habrá, haremos, podremos…)","Una frase con si + presente, futuro","Concordancias: la gente tira, hay (no «han»), habrá (no «habrán»)","Tildes del futuro: será, habrá, ahorraremos","Entre 200 y 250 palabras"];
+const saved=JSON.parse(store.get("eda-futuro-checks")||"[]");
+$("checksK").innerHTML=KC.map((c,i)=>`<li><label><input type="checkbox" data-k="${i}" ${saved.includes(i)?"checked":""}><span>${c}</span></label></li>`).join("");
+$("checksK").addEventListener("change",()=>store.set("eda-futuro-checks",JSON.stringify([...$("checksK").querySelectorAll("input:checked")].map(x=>+x.dataset.k))));
+const draft=$("draft");draft.value=store.get("eda-futuro-draft")||"";
+function wcount(){
+  const lines=draft.value.split("\n");const body=lines.slice(1).join(" ");const w=words(body);
+  const el=$("wc");el.textContent=`${w} palabras`+(w>250?" · lo que pase de 250 no se corrige":w<200?` · faltan ${200-w}`:" · ¡perfecto!");
+  el.className="wc "+(w>250?"over":w<200?"low":"good");
+}
+draft.addEventListener("input",()=>{store.set("eda-futuro-draft",draft.value);wcount()});wcount();
+let left=2400,tick=null;
+const showT=()=>{$("timer").textContent=`${String(Math.floor(left/60)).padStart(2,"0")}:${String(left%60).padStart(2,"0")}`};
+$("tGo").addEventListener("click",()=>{
+  if(tick){clearInterval(tick);tick=null;$("tGo").textContent="Seguir";return}
+  $("tGo").textContent="Pausa";
+  tick=setInterval(()=>{left--;showT();if(left<=0){clearInterval(tick);tick=null;$("tGo").textContent="¡Tiempo!"}},1000);
+});
+$("tReset").addEventListener("click",()=>{clearInterval(tick);tick=null;left=2400;showT();$("tGo").textContent="Empezar"});
+
+/* logic */
+const norm=s=>s.toLowerCase().trim().replace(/\s+/g," ").replace(/^(yo|tú|tu|nosotras|nosotros|él|ella|ellos) /,"");
+const strip=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
+
+function whyLine(b,word){const [t,txt]=R[b.r];return `<div><span class="tag ${t}">${TNAME[t]}</span><span><b class="${t}">${word}</b> · ${txt}</span></div>`}
+
+document.addEventListener("click",e=>{
+  const ob=e.target.closest(".ch button");
+  if(ob){
+    const id=ob.dataset.b,b=blanks[id],i=+ob.dataset.i,wrap=document.getElementById(id);
+    if(wrap.classList.contains("done"))return;
+    if(i===b.ci){
+      if(b.status===null)b.status="ok";
+      ob.classList.add("right",R[b.r][0]); wrap.classList.add("done");
+      const why=wrap.closest(".q")?.querySelector(".why");
+      if(why)why.insertAdjacentHTML("beforeend",whyLine(b,b.opts[i]));
+      else ob.title=R[b.r][1];
+    }else{ if(b.status===null)b.status="bad"; ob.classList.add("wrong"); }
+    score();return;
+  }
+  const act=e.target.closest("[data-act]");
+  if(act){
+    const box=act.closest("[data-group]");let ok=0,tot=0;
+    box.querySelectorAll(".fill input").forEach(inp=>{
+      const b=blanks[inp.id],fix=document.getElementById(inp.id+"f");tot++;
+      inp.className="";fix.className="fix";fix.textContent="";
+      if(act.dataset.act==="show"){
+        if(b.status!=="ok"){inp.value=b.ans[0];inp.classList.add("shown");b.status="shown";}
+        else{inp.classList.add("ok",R[b.r][0]);ok++}
+        return;
+      }
+      const v=norm(inp.value);if(!v){b.status=null;return}
+      const A2=b.ans.map(norm);
+      if(A2.includes(v)){b.status="ok";ok++;inp.classList.add("ok",R[b.r][0]);inp.title=R[b.r][1];}
+      else if(A2.map(strip).includes(strip(v))){b.status="tilde";inp.classList.add("tilde");fix.classList.add("tilde");fix.textContent="→ falta la tilde: "+b.ans[0];}
+      else{b.status="bad";inp.classList.add("bad");fix.classList.add("bad");fix.textContent="→ "+b.ans[0]+" ("+R[b.r][1].toLowerCase()+")";}
+    });
+    box.querySelector(".actions .msg").textContent=act.dataset.act==="check"?`${ok} de ${tot} correctas`:"Soluciones a la vista. Borra y vuelve a intentarlo cuando quieras.";
+    score();return;
+  }
+  const eb=e.target.closest(".e-btns button");
+  if(eb){
+    const q=eb.closest("[data-e]"),set=q.dataset.set,k=+q.dataset.e,[s,good,fix,why]=BIN[set].items[k];
+    if(k in bState[set])return;
+    const pick=eb.dataset.v==="1";bState[set][k]=pick===good;
+    eb.classList.add("picked",bState[set][k]?"good":"nope");
+    const rv=q.querySelector(".reveal");
+    const head=bState[set][k]?"<b style='color:var(--ok)'>¡Bien!</b> ":"<b style='color:var(--bad)'>No exactamente.</b> ";
+    const body=set==="G"?(good?"Es bueno para el planeta. ":"Es malo para el planeta. "):(good?"La frase es correcta. ":"Corrección: "+fix+" ");
+    rv.innerHTML=head+body+why;rv.hidden=false;score();
+  }
+});
+document.addEventListener("input",e=>{if(e.target.matches(".fill input")){e.target.className="";const f=document.getElementById(e.target.id+"f");if(f){f.textContent="";f.className="fix"}}});
+
+function score(){
+  const all=Object.values(blanks);const tot=all.length+BIN.G.items.length+BIN.H.items.length;
+  const ok=all.filter(b=>b.status==="ok").length+Object.values(bState.G).filter(Boolean).length+Object.values(bState.H).filter(Boolean).length;
+  document.getElementById("score").textContent=`${ok} / ${tot} aciertos`;
+  document.getElementById("barfill").style.width=(ok/tot*100)+"%";
+}
+score();
+</script>
+</body></html>
