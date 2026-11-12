@@ -17,16 +17,8 @@
   --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
   --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --board:#0e1419; --dots:#26313b; --surface:#18212a; --ink:#e7eef4; --muted:#9daab5; --line:#2b3946;
-  --in:#97b9f2; --in-s:#1c2d47; --pr:#f29a8d; --pr-s:#3d2120; --so:#7fd1a2; --so-s:#16362a;
-  --co:#bcaaf5; --co-s:#2a2342; --gr:#e8c063; --gr-s:#352b12; --cn:#f2a874; --cn-s:#3a2617;
-  color-scheme:dark}}
-:root[data-theme="dark"]{
-  --board:#0e1419; --dots:#26313b; --surface:#18212a; --ink:#e7eef4; --muted:#9daab5; --line:#2b3946;
-  --in:#97b9f2; --in-s:#1c2d47; --pr:#f29a8d; --pr-s:#3d2120; --so:#7fd1a2; --so-s:#16362a;
-  --co:#bcaaf5; --co-s:#2a2342; --gr:#e8c063; --gr-s:#352b12; --cn:#f2a874; --cn-s:#3a2617;
-  color-scheme:dark}
+/* Always light: brighter for studying, whatever the device setting. */
+:root{color-scheme:light}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
