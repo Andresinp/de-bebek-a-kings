@@ -568,7 +568,8 @@ function goEl(id,ms){
    embedded in a page), so the map never moves by accident. Mouse: drag pans. Trackpad: scroll pans, pinch zooms. */
 const pts=new Map(); let last=null, moved=0, vel={x:0,y:0}, lastT=0, pinch=null, hinted=false;
 const two=document.getElementById('two'); let twoT;
-function hintTwo(){ two.classList.add('on'); clearTimeout(twoT); twoT=setTimeout(()=>two.classList.remove('on'),1300); }
+let twoSeen=false; try{ twoSeen=!!localStorage.getItem('mapa-two'); }catch(_){}
+function hintTwo(){ if(twoSeen) return; twoSeen=true; try{localStorage.setItem('mapa-two','1');}catch(_){} two.classList.add('on'); clearTimeout(twoT); twoT=setTimeout(()=>two.classList.remove('on'),1300); }
 let inField=false;
 view.addEventListener('pointerdown',e=>{
   if(pts.size>=2) return;                                  // ignore a palm or third finger
@@ -582,7 +583,7 @@ view.addEventListener('pointerdown',e=>{
   pts.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
   if(pts.size===1){ last={x:e.clientX,y:e.clientY}; moved=0; hinted=false; vel={x:0,y:0}; lastT=performance.now(); }
   if(pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};
-    moved=99; vel={x:0,y:0}; lastT=performance.now(); two.classList.remove('on'); }
+    moved=99; hinted=true; vel={x:0,y:0}; lastT=performance.now(); two.classList.remove('on'); }
   if(e.pointerType==='mouse') view.classList.add('grabbing');
 });
 addEventListener('pointermove',e=>{
@@ -614,7 +615,6 @@ function up(e){
   }
   if(pts.size===0){
     pinch=null; view.classList.remove('grabbing');
-    if(moved>8 && performance.now()-lastT<80 && Math.hypot(vel.x,vel.y)>1) glide();
   }
 }
 addEventListener('pointerup',up); addEventListener('pointercancel',up);
