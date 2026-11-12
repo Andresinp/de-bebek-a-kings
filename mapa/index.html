@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
 /* Same fonts as ../index.html. Pastel colour per part of the article:
-   intro = blue, problemas = rose, soluciones = mint, conclusión = lavender, gramática = butter, conectores = peach */
+   intro = blue, problema = rose, soluciones = mint, conclusión = lavender, gramática = butter, conectores = peach */
 :root{
   --board:#e3e8ed; --dots:#c9d1d9; --surface:#ffffff; --ink:#17212b; --muted:#55636f; --line:#d3dbe2;
   --in:#2b5a9e; --in-s:#dce8fa;
@@ -16,7 +16,6 @@
   --cn:#a0501a; --cn-s:#fde3cf;
   --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
   --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
-  --panel-w:400px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --board:#0e1419; --dots:#26313b; --surface:#18212a; --ink:#e7eef4; --muted:#9daab5; --line:#2b3946;
@@ -30,12 +29,14 @@
   color-scheme:dark}
 
 *{box-sizing:border-box}
-html,body{height:100%;overflow:hidden}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden;margin:0}
 body{background:var(--board);color:var(--ink);font-family:var(--body);-webkit-text-size-adjust:100%;overscroll-behavior:none}
-h1,h2,h3{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance}
 p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
 
-/* ---------- top bar ---------- */
+/* ---------- bars ---------- */
 .top{position:fixed;left:0;right:0;top:0;z-index:20;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;
   display:flex;gap:10px;align-items:center;background:color-mix(in srgb,var(--board) 88%,transparent);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
@@ -43,9 +44,8 @@ p{margin:0}
 .top .ttl{font-family:var(--display);font-weight:800;font-size:1.1rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .btn{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap;min-height:40px}
 .btn.main{background:var(--ink);color:var(--surface);border-color:var(--ink);font-weight:700}
+.btn:disabled{opacity:.45;cursor:default}
 .btn:focus-visible{outline:2px solid var(--in);outline-offset:2px}
-
-/* ---------- bottom nav ---------- */
 .nav{position:fixed;left:0;bottom:0;z-index:20;right:0;padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 8px);
   display:flex;gap:8px;align-items:center;background:color-mix(in srgb,var(--board) 88%,transparent);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line)}
@@ -55,199 +55,149 @@ p{margin:0}
 .nav .go button[data-k="in"]{background:var(--in-s)} .nav .go button[data-k="pr"]{background:var(--pr-s)}
 .nav .go button[data-k="so"]{background:var(--so-s)} .nav .go button[data-k="co"]{background:var(--co-s)}
 .nav .go button[data-k="cn"]{background:var(--cn-s)} .nav .go button[data-k="gr"]{background:var(--gr-s)}
+.nav .go button[data-k="w"]{background:var(--ink);color:var(--surface);font-weight:700}
 .zoom{display:flex;gap:4px}
 .zoom .btn{width:40px;padding:0;font-size:1.2rem;font-weight:700}
+@media (max-width:520px){.top .ttl{visibility:hidden}}
 
-/* ---------- the board ---------- */
+/* ---------- board ---------- */
 #view{position:fixed;inset:0;overflow:hidden;touch-action:none;cursor:grab;
   background-color:var(--board);background-image:radial-gradient(var(--dots) 1.4px,transparent 1.6px);background-size:28px 28px}
 #view.grabbing{cursor:grabbing}
-body.open #view{right:var(--panel-w)}
-body.open .nav,body.open .top{right:var(--panel-w)}
-body.open .help{left:calc(50% - var(--panel-w)/2)}
-#board{position:absolute;left:0;top:0;transform-origin:0 0;display:grid;
-  grid-template-columns:540px 640px 1620px 780px 600px 840px;column-gap:150px;align-items:start;padding:80px;
-  font-size:20px;line-height:1.5}
+#board{position:absolute;left:0;top:0;transform-origin:0 0;display:grid;padding:80px;
+  grid-template-columns:740px 1040px 740px;gap:90px 110px;align-items:start;font-size:21px;line-height:1.5}
 #board.moving{will-change:transform}
-.col{display:grid;gap:44px;position:relative}
-.col.pr{grid-template-columns:780px 780px;column-gap:60px}
-.col.pr .head{grid-column:1/-1}
-.stack{display:grid;gap:44px;align-content:start}
-.col + .col::before{content:"→";position:absolute;left:-115px;top:20px;font:800 72px/1 var(--display);color:var(--muted);opacity:.55}
-.col.side::before,.col.after::before{content:none}
+.col{display:grid;gap:40px;align-content:start}
 
-.head{display:grid;gap:8px;padding:0 4px}
-.head .n{font:800 22px/1 var(--display);letter-spacing:.14em;text-transform:uppercase}
-.head h2{font-size:76px;font-weight:800;letter-spacing:-.02em}
-.head p{font-size:24px;color:var(--muted)}
-.in .head .n{color:var(--in)} .pr .head .n{color:var(--pr)} .so .head .n{color:var(--so)} .co .head .n{color:var(--co)}
-.task .head .n{color:var(--cn)} .model .head .n{color:var(--muted)}
-
-.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:26px 30px;display:grid;gap:16px;
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px 28px;display:grid;gap:14px;align-content:start;
   box-shadow:0 1px 0 rgba(0,0,0,.03),0 8px 24px -14px rgba(20,33,43,.25);cursor:zoom-in}
-.card > h3{font-size:34px;font-weight:800;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.card > h3{font-size:32px;font-weight:800;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
 .card > h3 small{font:400 18px/1.3 var(--body);color:var(--muted)}
-.card .kick{font-size:17px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--muted)}
-.tint-in{background:var(--in-s);border-color:transparent} .tint-pr{background:var(--pr-s);border-color:transparent}
-.tint-so{background:var(--so-s);border-color:transparent} .tint-co{background:var(--co-s);border-color:transparent}
-.tint-gr{background:var(--gr-s);border-color:transparent} .tint-cn{background:var(--cn-s);border-color:transparent}
+.kick{font:800 15px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sec{display:grid;gap:4px}
+.sec .kick{margin-bottom:2px}
+.sec h2{font-size:52px;font-weight:800;letter-spacing:-.02em}
+.in .sec .kick,.in h2{color:var(--in)} .pr .sec .kick,.pr h2{color:var(--pr)}
+.so .sec .kick,.so h2{color:var(--so)} .co .sec .kick,.co h2{color:var(--co)}
+.in{border-top:8px solid var(--in)} .pr{border-top:8px solid var(--pr)} .so{border-top:8px solid var(--so)} .co{border-top:8px solid var(--co)}
+.gr{background:var(--gr-s);border-color:transparent}
+.cn{background:var(--cn-s);border-color:transparent}
 
-/* phrase you can tap to add to your text */
-.ph{display:grid;gap:2px;padding:12px 16px;border-radius:14px;background:var(--surface);border:2px solid transparent;cursor:pointer;
-  transition:border-color .15s,transform .15s}
-.tint-in .ph,.tint-pr .ph,.tint-so .ph,.tint-co .ph,.tint-gr .ph,.tint-cn .ph{background:var(--surface)}
-.card:not([class*="tint-"]) .ph{background:var(--board)}
-.ph b{font-size:24px;font-weight:700}
-.ph .ex{color:var(--ink)}
-.ph .gl{font-size:16px;color:var(--muted)}
-body.open .ph:hover{border-color:var(--ink)}
-.ph.flash{border-color:var(--so);transform:scale(1.02)}
-.ph .num{font:800 16px/1 var(--display);color:var(--muted);margin-right:6px}
-.in .ph b{color:var(--in)} .pr .ph b{color:var(--pr)} .so .ph b{color:var(--so)} .co .ph b{color:var(--co)}
-.list{display:grid;gap:10px}
-.goto{font:inherit;font-size:17px;font-weight:700;border:0;border-radius:999px;padding:6px 14px;cursor:pointer;justify-self:start;color:var(--ink)}
-.goto.gr{background:var(--gr-s)} .goto.pr{background:var(--pr-s)} .goto.so{background:var(--so-s)} .goto.cn{background:var(--cn-s)}
-.tint-gr .goto.gr{background:var(--surface)}
+/* plain tappable list */
+.ls{display:grid;gap:2px}
+.ls .ph{position:relative;padding:6px 10px 6px 30px;border-radius:10px;font-weight:700;font-size:23px;line-height:1.35;cursor:pointer}
+.ls .ph::before{content:"";position:absolute;left:10px;top:.72em;width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.55}
+.in .ls .ph{color:var(--in)} .pr .ls .ph{color:var(--pr)} .so .ls .ph{color:var(--so)} .co .ls .ph{color:var(--co)}
+.ph:hover{background:color-mix(in srgb,currentColor 8%,transparent)}
+.ph.flash{background:color-mix(in srgb,var(--so) 22%,transparent)}
+.ls .ph i{font-style:normal;font-weight:400;color:var(--muted);font-size:18px}
 
-/* task */
-.steps{display:grid;gap:10px;margin:0;padding:0;list-style:none;counter-reset:s}
-.steps li{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start}
-.steps li::before{counter-increment:s;content:counter(s);width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
-  font:800 22px/1 var(--display);color:var(--ink)}
-.steps li:nth-child(1)::before{background:var(--in-s)} .steps li:nth-child(2)::before{background:var(--pr-s)}
-.steps li:nth-child(3)::before{background:var(--so-s)} .steps li:nth-child(4)::before{background:var(--co-s)}
-.meta{display:flex;flex-wrap:wrap;gap:8px}
-.meta span{background:var(--board);border-radius:999px;padding:4px 14px;font-size:17px}
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--surface);border-radius:999px;padding:5px 14px;font-size:19px;cursor:pointer;border:1px solid var(--line)}
+.gr .chip,.cn .chip{border-color:transparent}
+.chip b{font-weight:700}
+.chip i{font-style:normal;color:var(--muted);font-size:16px;margin-left:4px}
+.cn .chip b{color:var(--cn)}
+.stem{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.end{color:var(--gr);font-weight:800}
+.formula{font-family:var(--display);font-size:26px;font-weight:800;line-height:1.3}
+.formula .p{color:var(--in)} .formula .f{color:var(--gr)}
+.note{font-size:18px;color:var(--muted)}
 
-/* connectors */
-.cgrid{display:grid;gap:14px}
-.cgroup{display:grid;gap:8px}
-.cgroup .lab{font-size:16px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--cn)}
-.cgroup .row{display:flex;flex-wrap:wrap;gap:8px}
-.cgroup .ph{padding:8px 14px}
-.cgroup .ph b{font-size:22px;color:var(--cn)}
-.cgroup .ph .gl{font-size:15px}
+/* ---------- writing page (centre) ---------- */
+#k-write{cursor:auto;padding:34px 40px;gap:16px;border:2px solid var(--ink);box-shadow:0 20px 60px -30px rgba(20,33,43,.5)}
+#k-write h2{font-size:48px;font-weight:800}
+.parts{display:flex;flex-wrap:wrap;gap:8px}
+.parts span{border-radius:999px;padding:4px 14px;font-size:18px;font-weight:700}
+.parts .pa{background:var(--in-s);color:var(--in)} .parts .pb{background:var(--pr-s);color:var(--pr)}
+.parts .pc{background:var(--so-s);color:var(--so)} .parts .pd{background:var(--co-s);color:var(--co)}
+#draft{width:100%;min-height:1100px;font:22px/1.75 var(--body);color:var(--ink);border:0;border-radius:12px;padding:20px 24px;resize:none;overflow:hidden;
+  background:repeating-linear-gradient(to bottom,transparent 0 calc(1.75em - 1px),var(--line) calc(1.75em - 1px) 1.75em) var(--board);
+  background-attachment:local;background-position:0 20px}
+#draft:focus-visible{outline:3px solid var(--in);outline-offset:2px}
+.wbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.wc{font-variant-numeric:tabular-nums;font-weight:700;padding:6px 14px;border-radius:999px;font-size:19px;background:var(--board)}
+.wc.ok{background:var(--so-s);color:var(--so)} .wc.over{background:var(--pr-s);color:var(--pr)}
+.paras{font-size:18px;color:var(--muted)}
+#k-write .btn{font-size:18px}
 
-/* myth / reality + bars */
-.mr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.mr > div{border-radius:14px;padding:14px 16px;background:var(--surface);display:grid;gap:4px}
-.mr .t{font:800 15px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}
-.mr .no .t{color:var(--muted)} .mr .no p{text-decoration:line-through;text-decoration-thickness:2px;color:var(--muted)}
+/* ---------- info band (top) ---------- */
+#info{grid-column:1/-1;display:grid;grid-template-columns:1.05fr .8fr .8fr 1.45fr;gap:40px;align-items:start}
+.band-h{grid-column:1/-1;display:flex;align-items:baseline;gap:20px;flex-wrap:wrap}
+.band-h h2{font-size:64px;font-weight:800;letter-spacing:-.02em}
+.band-h p{font-size:24px;color:var(--muted)}
+.mr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mr > div{border-radius:14px;padding:12px 14px;background:var(--board);display:grid;gap:4px;font-size:18px}
+.mr .t{font:800 14px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}
+.mr .no p{text-decoration:line-through;text-decoration-thickness:2px;color:var(--muted)}
 .mr .yes .t{color:var(--pr)} .mr .yes p{font-weight:700}
-.bars{display:grid;gap:10px;background:var(--surface);border-radius:14px;padding:18px}
-.bars .cap{font-size:16px;color:var(--muted)}
-.b{display:grid;grid-template-columns:250px 1fr;gap:12px;align-items:center;font-size:18px}
-.b .track{position:relative;height:30px}
+.big{font-family:var(--display);font-size:28px;font-weight:800;line-height:1.2}
+.big em{font-style:normal;color:var(--pr)}
+.bars{display:grid;gap:8px}
+.b{display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:center;font-size:18px}
+.b .track{position:relative;height:26px}
 .b .fill{height:100%;border-radius:0 6px 6px 0;background:var(--pr);min-width:4px}
 .b.other .fill{background:var(--muted);opacity:.45}
-.b .v{position:absolute;top:50%;transform:translateY(-50%);font-weight:700;font-variant-numeric:tabular-nums;padding-left:8px}
-.b .sub{font-size:15px;color:var(--muted)}
 .b.car .fill{background:repeating-linear-gradient(135deg,var(--pr) 0 6px,color-mix(in srgb,var(--pr) 55%,var(--surface)) 6px 12px)}
-.key{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:16px;color:var(--muted)}
+.b .v{position:absolute;top:50%;transform:translateY(-50%);font-weight:700;font-variant-numeric:tabular-nums;padding-left:8px}
+.key{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:15px;color:var(--muted)}
 .key i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px}
-.big{font-family:var(--display);font-size:30px;font-weight:800;line-height:1.2}
-.big em{font-style:normal;color:var(--pr)}
-
-/* chain */
-.chain{display:grid;gap:0;justify-items:start}
-.chain .s{background:var(--surface);border-radius:12px;padding:10px 16px;font-weight:700}
-.chain .s small{display:block;font-weight:400;font-size:15px;color:var(--muted)}
-.chain .ar{font:800 26px/1 var(--display);color:var(--pr);padding:4px 0 4px 22px}
-.chain .s.hot{background:var(--pr);color:var(--surface)}
-.chain .s.hot small{color:inherit;opacity:.85}
-
-/* life of a product */
-.life{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.life > div{background:var(--surface);border-radius:14px;padding:12px;display:grid;gap:6px;align-content:start;font-size:17px}
-.life .dot{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:800 20px/1 var(--display);color:#fff}
+.chain{display:grid;gap:0}
+.chain .s{font-weight:700;font-size:20px;padding:6px 0}
+.chain .s.hot{color:var(--pr);font-family:var(--display);font-size:26px;font-weight:800}
+.chain .ar{color:var(--pr);font:800 22px/1 var(--display);padding-left:4px}
+.life{display:grid;gap:12px}
+.life > div{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;font-size:19px}
+.life .dot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:800 20px/1 var(--display);color:#fff}
 .life > div:nth-child(odd) .dot{background:#2a9d8f} .life > div:nth-child(even) .dot{background:#e8924a}
-.life b{font-size:18px}
-
-/* tables */
-.tb{border-collapse:collapse;width:100%;font-size:19px;background:var(--surface);border-radius:14px;overflow:hidden}
-.tb th,.tb td{text-align:left;padding:8px 14px;border-bottom:1px solid var(--line);vertical-align:top}
-.tb th{font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.tb tr:last-child td{border-bottom:0}
-.end{color:var(--gr);font-weight:700}
-.stem{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
-.formula{font-family:var(--display);font-size:28px;font-weight:800;background:var(--surface);border-radius:14px;padding:14px 18px;line-height:1.3}
-.formula .p{color:var(--in)} .formula .f{color:var(--gr)}
-.tip{font-size:18px;background:var(--surface);border-radius:14px;padding:12px 16px}
+.tbx{overflow:hidden;border-radius:14px}
+.all{border-collapse:collapse;width:100%;font-size:18px;line-height:1.35}
+.all th,.all td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.all thead th{font:800 15px/1.2 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.all thead th span{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;color:#fff;margin-right:6px;letter-spacing:0}
+.all thead th:nth-child(2) span,.all thead th:nth-child(4) span{background:#2a9d8f}
+.all thead th:nth-child(3) span,.all thead th:nth-child(5) span{background:#e8924a}
+.all tbody th{font-family:var(--display);font-size:20px;white-space:nowrap}
+.all tr:last-child td,.all tr:last-child th{border-bottom:0}
+.all td.max{background:var(--pr-s);font-weight:700}
+.all td.max::after{content:" ●";color:var(--pr)}
 
 /* who can do what */
-.who{display:grid;gap:12px}
-.who > div{background:var(--surface);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
-.who .lvl{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
-.who .lvl b{font-family:var(--display);font-size:24px}
+.who{display:grid;gap:14px}
+.who .lvl{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:6px}
+.who .lvl b{font-family:var(--display);font-size:22px}
 .who .lvl span{font-size:15px;color:var(--muted);white-space:nowrap}
-.meter{display:inline-flex;gap:3px;vertical-align:middle}
-.meter i{width:14px;height:14px;border-radius:3px;background:var(--line)}
+.meter{display:inline-flex;gap:3px;vertical-align:middle;margin-right:6px}
+.meter i{width:12px;height:12px;border-radius:3px;background:var(--line)}
 .meter i.on{background:var(--so)}
-.who .row{display:flex;flex-wrap:wrap;gap:8px}
-.who .ph{padding:6px 12px;background:var(--so-s)}
-.who .ph b{font-size:19px}
-
-/* vocab */
-.voc{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.voc .ph{padding:8px 12px}
-.voc .ph b{font-size:20px}
+.who .chip{background:var(--so-s);border-color:transparent;color:var(--so);font-weight:700}
 
 /* model */
-.para{display:grid;gap:6px;padding:14px 18px;border-radius:14px;border-left:8px solid}
-.para .lab{font-size:15px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
-.para.p1{border-color:var(--in);background:var(--in-s)} .para.p1 .lab{color:var(--in)}
-.para.p2{border-color:var(--pr);background:var(--pr-s)} .para.p2 .lab{color:var(--pr)}
-.para.p3{border-color:var(--so);background:var(--so-s)} .para.p3 .lab{color:var(--so)}
-.para.p4{border-color:var(--co);background:var(--co-s)} .para.p4 .lab{color:var(--co)}
-.para p{font-size:21px;line-height:1.6}
-.mt{font-family:var(--display);font-size:32px;font-weight:800}
-.st{font-weight:700;background:var(--surface);border-radius:6px;padding:0 4px}
+.para{padding:10px 14px;border-radius:12px;border-left:6px solid;font-size:19px;line-height:1.6}
+.para.p1{border-color:var(--in);background:var(--in-s)} .para.p2{border-color:var(--pr);background:var(--pr-s)}
+.para.p3{border-color:var(--so);background:var(--so-s)} .para.p4{border-color:var(--co);background:var(--co-s)}
+.mt{font-family:var(--display);font-size:28px;font-weight:800}
+.st{font-weight:700}
 .c{color:var(--cn);font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
-.vf{color:var(--gr);font-weight:700;background:var(--gr-s);border-radius:4px;padding:0 3px}
-.vc{color:var(--so);font-weight:700;background:var(--surface);border-radius:4px;padding:0 3px;outline:2px solid var(--so);outline-offset:-1px}
-.mkey{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:16px;color:var(--muted)}
-.mold .ph{background:var(--surface)}
-.mold .ph b{font-size:20px;font-weight:400;color:var(--ink)}
-.mold .ph b u{text-decoration:none;color:var(--muted);letter-spacing:.05em}
-.mold h4{margin:8px 0 0;font:800 18px/1 var(--display);letter-spacing:.1em;text-transform:uppercase}
-.mold h4.a{color:var(--in)} .mold h4.b{color:var(--pr)} .mold h4.c{color:var(--so)} .mold h4.d{color:var(--co)}
+.vf{color:var(--gr);font-weight:700}
+.vc{color:var(--so);font-weight:700}
+.mkey{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;color:var(--muted)}
+.mold .ph{padding:6px 10px;border-radius:10px;font-size:19px;cursor:pointer}
+.mold .ph u{text-decoration:none;color:var(--muted)}
+.mold h4{font:800 14px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+.checks{display:grid;gap:4px}
+.checks li{position:relative;padding-left:32px;font-size:19px}
+.checks li::before{content:"☐";position:absolute;left:0;top:-3px;font-size:23px;color:var(--co)}
 
-.checks{margin:0;padding:0;list-style:none;display:grid;gap:8px}
-.checks li{position:relative;padding-left:36px;font-size:19px}
-.checks li::before{content:"☐";position:absolute;left:0;top:-2px;font-size:24px;color:var(--co)}
-
-/* ---------- writing panel ---------- */
-.panel{position:fixed;z-index:30;right:0;top:0;bottom:0;width:var(--panel-w);background:var(--surface);border-left:1px solid var(--line);
-  display:flex;flex-direction:column;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px calc(env(safe-area-inset-bottom,0px) + 12px);
-  transform:translateX(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);box-shadow:-12px 0 32px -20px rgba(0,0,0,.4)}
-body.open .panel{transform:none}
-.panel .ph-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.panel h2{font-size:1.35rem;font-weight:800}
-.panel .hint{font-size:.9rem;color:var(--muted);line-height:1.4}
-.panel textarea{flex:1;min-height:120px;width:100%;font:16px/1.65 var(--body);color:var(--ink);background:var(--board);border:1px solid var(--line);
-  border-radius:12px;padding:12px 14px;resize:none}
-.panel textarea:focus-visible{outline:2px solid var(--in);outline-offset:1px}
-.panel .foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.wc{font-variant-numeric:tabular-nums;font-weight:700;padding:6px 12px;border-radius:999px;font-size:.92rem;background:var(--board)}
-.wc.ok{background:var(--so-s);color:var(--so)} .wc.over{background:var(--pr-s);color:var(--pr)}
-.paras{font-size:.88rem;color:var(--muted)}
-@media (max-width:820px){
-  :root{--panel-w:0px}
-  .panel{left:0;right:0;width:auto;top:auto;height:52dvh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;
-    transform:translateY(100%);padding-top:12px}
-  body.open #view{right:0;bottom:52dvh}
-  body.open .nav{display:none}
-}
-
-/* toast + first-time hint */
+/* toast + help */
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translate(-50%,-10px);z-index:40;background:var(--ink);color:var(--surface);
   padding:8px 16px;border-radius:999px;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .help{position:fixed;z-index:25;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);transform:translateX(-50%);background:var(--surface);border:1px solid var(--line);
-  border-radius:16px;padding:12px 16px;display:flex;gap:12px;align-items:center;font-size:.95rem;box-shadow:0 10px 30px -16px rgba(0,0,0,.4);width:min(560px,calc(100vw - 32px))}
+  border-radius:16px;padding:12px 16px;display:flex;gap:12px;align-items:center;font-size:.95rem;box-shadow:0 10px 30px -16px rgba(0,0,0,.4);width:min(600px,calc(100vw - 32px))}
 .help p{flex:1;line-height:1.4}
-@media (max-width:520px){.top .ttl{visibility:hidden}.top{justify-content:space-between}}
-@media (prefers-reduced-motion: reduce){.panel,.toast{transition:none}}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
 </style>
 </head>
 <body>
@@ -255,389 +205,290 @@ body.open .panel{transform:none}
 <div class="top">
   <a class="back" href="../">← De Bebek a King's</a>
   <span class="ttl">El mapa del artículo · CO₂</span>
-  <button class="btn main" id="writeBtn" type="button">✍︎ Escribir</button>
+  <button class="btn main" data-go="k-write" type="button">✍︎ Mi texto</button>
 </div>
 
 <div id="view" aria-label="Mapa: arrastra para moverte, pellizca para hacer zoom">
 <div id="board">
 
-  <!-- ================= 0 · TAREA + CONECTORES ================= -->
-  <div class="col task" id="c-task">
-    <div class="head"><span class="n">El examen</span><h2>La tarea</h2><p>Mira el mapa de izquierda a derecha: así va tu texto.</p></div>
+  <!-- ================= TOP BAND · the real problem ================= -->
+  <div id="info">
+    <div class="band-h"><h2>¿De dónde viene el CO₂?</h2><p>Antes de escribir, entiende el problema.</p></div>
 
-    <div class="card" id="k-task">
-      <h3>Un artículo para Madrid</h3>
-      <p>Para el boletín de una universidad de Madrid, en una campaña de <b>sostenibilidad</b>.</p>
-      <div class="meta"><span>200–250 palabras</span><span>40 minutos</span><span>4 párrafos</span><span>a mano</span></div>
-      <ol class="steps">
-        <li><span><b>Saludo + introducción.</b> ¿De qué vas a hablar?</span></li>
-        <li><span><b>Problemas</b> que has observado en tu ciudad, tu universidad o el mundo.</span></li>
-        <li><span><b>Recomendaciones</b> prácticas: ¿qué podemos hacer?</span></li>
-        <li><span><b>Conclusión.</b> Una idea final y una llamada a la acción.</span></li>
-      </ol>
-    </div>
-
-    <div class="card">
-      <h3>Los 40 minutos</h3>
-      <ul class="checks">
-        <li><b>0–5'</b> Plan: título, 2 problemas, 3 recomendaciones, los verbos.</li>
-        <li><b>5–30'</b> Escribe los 4 párrafos.</li>
-        <li><b>30–37'</b> Revisa con «Antes de entregar».</li>
-        <li><b>37–40'</b> Cuenta: 200–250. Más de 250 no se corrige.</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3>Cómo usar el mapa</h3>
-      <ul class="checks" style="--x:0">
-        <li>Pellizca para acercar o alejar. Arrastra con un dedo para moverte.</li>
-        <li>Toca una tarjeta y el mapa la acerca.</li>
-        <li>Pulsa <b>✍︎ Escribir</b>: con el panel abierto, toca una frase y se añade a tu texto.</li>
-        <li>Tu texto se guarda en este iPad.</li>
-      </ul>
-    </div>
-
-    <div class="card tint-cn" id="k-cn">
-      <h3>Conectores <small>connectors · bağlaçlar</small></h3>
-      <p>Usa <b>5 o más</b> distintos. Unen tus ideas.</p>
-      <div class="cgrid">
-        <div class="cgroup"><span class="lab">Añadir · to add</span><div class="row">
-          <div class="ph" data-ins="y "><b>y</b><span class="gl">and · ve</span></div>
-          <div class="ph" data-ins="Además, "><b>además</b><span class="gl">moreover · ayrıca</span></div>
-          <div class="ph" data-ins="también "><b>también</b><span class="gl">also · de / da</span></div></div></div>
-        <div class="cgroup"><span class="lab">Contraste · but</span><div class="row">
-          <div class="ph" data-ins="pero "><b>pero</b><span class="gl">but · ama</span></div>
-          <div class="ph" data-ins="Sin embargo, "><b>sin embargo</b><span class="gl">however · ancak</span></div>
-          <div class="ph" data-ins="Aunque "><b>aunque</b><span class="gl">although · -e rağmen</span></div></div></div>
-        <div class="cgroup"><span class="lab">Causa y consecuencia</span><div class="row">
-          <div class="ph" data-ins="porque "><b>porque</b><span class="gl">because · çünkü</span></div>
-          <div class="ph" data-ins="Por eso, "><b>por eso</b><span class="gl">this is why · bu yüzden</span></div></div></div>
-        <div class="cgroup"><span class="lab">Ordenar y explicar</span><div class="row">
-          <div class="ph" data-ins="Primero, "><b>primero</b><span class="gl">first · ilk olarak</span></div>
-          <div class="ph" data-ins="Por ejemplo, "><b>por ejemplo</b><span class="gl">for example · örneğin</span></div></div></div>
-        <div class="cgroup"><span class="lab">Terminar</span><div class="row">
-          <div class="ph" data-ins="En conclusión, "><b>en conclusión</b><span class="gl">in conclusion · sonuç olarak</span></div></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= 1 · INTRODUCCIÓN ================= -->
-  <div class="col in" id="c-in">
-    <div class="head"><span class="n">Párrafo 1 · ~45 palabras</span><h2>Introducción</h2><p>¿Cómo empiezo?</p></div>
-
-    <div class="card tint-in" id="k-in">
-      <h3>Para empezar <small>4 formas</small></h3>
-      <div class="list">
-        <div class="ph" data-ins="¡Hola a todos y a todas! Me llamo Eda y estudio en King's College, en Londres. "><b><span class="num">0</span>¡Hola a todos y a todas!</b><span class="ex">Me llamo Eda y estudio en King's College.</span><span class="gl">Hello everyone! · Herkese merhaba!</span></div>
-        <div class="ph" data-ins="¡Hola, compañeros y compañeras! "><b><span class="num">0</span>¡Hola, compañeros y compañeras!</b><span class="gl">Hello, classmates! · Merhaba arkadaşlar!</span></div>
-        <div class="ph" data-ins="En este artículo voy a hablar sobre "><b><span class="num">1</span>En este artículo voy a hablar sobre…</b><span class="ex">…las emisiones de CO₂.</span><span class="gl">In this article I'm going to talk about… · Bu yazıda … hakkında konuşacağım.</span></div>
-        <div class="ph" data-ins="Hoy en día, uno de los problemas más grandes del mundo es "><b><span class="num">2</span>Hoy en día, uno de los problemas más grandes es…</b><span class="ex">…el calentamiento global.</span><span class="gl">Nowadays, one of the biggest problems is… · Günümüzde en büyük sorunlardan biri…</span></div>
-        <div class="ph" data-ins="¿Sabéis que "><b><span class="num">3</span>¿Sabéis que…?</b><span class="ex">¿Sabéis que casi el 75 % de las emisiones viene de la energía?</span><span class="gl">Did you know that…? · Biliyor musunuz…?</span></div>
-        <div class="ph" data-ins="Muchas personas piensan que el problema son solo los coches, pero en realidad "><b><span class="num">4</span>Muchas personas piensan que…, pero en realidad…</b><span class="ex">…el problema son los coches, pero en realidad es la energía.</span><span class="gl">Many people think…, but actually… · Birçok kişi … düşünüyor, ama aslında…</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>¿Por qué es importante para nosotros? <small>el examen lo pide</small></h3>
-      <div class="list">
-        <div class="ph" data-ins="Es un tema muy importante porque "><b>Es un tema muy importante porque…</b><span class="ex">…afecta a todos.</span><span class="gl">It's a very important topic because… · Çok önemli bir konu çünkü…</span></div>
-        <div class="ph" data-ins="Es importante para nosotros, los estudiantes, porque es nuestro futuro. "><b>Es importante para nosotros, los estudiantes, porque es nuestro futuro.</b><span class="gl">It matters to us students because it is our future. · Biz öğrenciler için önemli çünkü bu bizim geleceğimiz.</span></div>
-        <div class="ph" data-ins="Es un problema de todos, no solo de los gobiernos. "><b>Es un problema de todos.</b><span class="gl">It's everyone's problem. · Hepimizin sorunu.</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Receta del párrafo 1</h3>
-      <ul class="checks">
-        <li>Saludo (0)</li>
-        <li>El tema: <b>voy a hablar sobre</b> (1)</li>
-        <li>Una frase que llama la atención (2, 3 o 4)</li>
-        <li>Porque…</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- ================= 2 · PROBLEMAS ================= -->
-  <div class="col pr" id="c-pr">
-    <div class="head"><span class="n">Párrafo 2 · ~80 palabras</span><h2>El problema</h2><p>¿Qué pasa y por qué?</p></div>
-
-    <div class="stack">
-    <div class="card tint-pr" id="k-pr">
-      <h3>Para hablar del problema</h3>
-      <div class="list">
-        <div class="ph" data-ins="El problema principal es "><b><span class="num">1</span>El problema principal es…</b><span class="ex">…la producción de energía.</span><span class="gl">The main problem is… · Asıl sorun…</span></div>
-        <div class="ph" data-ins="Hoy en día, muchas fábricas y casas usan electricidad de carbón y de gas. "><b><span class="num">2</span>Hoy en día, muchas fábricas usan…</b><span class="ex">…electricidad de carbón y de gas.</span><span class="gl">Nowadays many factories use… · Günümüzde birçok fabrika … kullanıyor.</span></div>
-        <div class="ph" data-ins="En mi universidad he observado que "><b><span class="num">3</span>En mi universidad / ciudad he observado que…</b><span class="ex">…la cafetería vende fruta de países muy lejanos.</span><span class="gl">At my university I have noticed that… · Üniversitemde … fark ettim.</span></div>
-        <div class="ph" data-ins="Hay demasiados "><b><span class="num">4</span>Hay demasiado / demasiados…</b><span class="ex">…productos de usar y tirar.</span><span class="gl">There is / are too much / too many… · Çok fazla … var.</span></div>
-      </div>
-      <div class="kick">Causa → efecto</div>
-      <div class="list">
-        <div class="ph" data-ins="Esto causa "><b>Esto causa…</b><span class="ex">…el calentamiento global.</span><span class="gl">This causes… · Bu, …e neden olur.</span></div>
-        <div class="ph" data-ins="Por eso "><b>Por eso…</b><span class="ex">…hay tanto CO₂ en el aire.</span><span class="gl">This is why… · Bu yüzden…</span></div>
-        <div class="ph" data-ins="Si no cambiamos nada, habrá "><b>Si no cambiamos nada, habrá…</b><span class="ex">…más olas de calor y sequías.</span><span class="gl">If we don't change anything, there will be… · Hiçbir şeyi değiştirmezsek, … olacak.</span></div>
-      </div>
-      <button class="goto gr" data-go="k-fut" type="button">→ ¿Cómo se hace el futuro?</button>
-    </div>
-
-    <div class="card tint-gr" id="k-fut">
-      <h3>El futuro <small>will · -ecek / -acak</small></h3>
-      <p>Para decir qué <b>va a pasar</b> si no hacemos nada.</p>
-      <div class="formula"><span class="p">Si + presente</span>, <span class="f">futuro</span></div>
-      <table class="tb">
-        <thead><tr><th></th><th>infinitivo + terminación</th></tr></thead>
-        <tbody>
-          <tr><td>yo</td><td>subir<span class="end">é</span></td></tr>
-          <tr><td>tú</td><td>subir<span class="end">ás</span></td></tr>
-          <tr><td>él / ella / la temperatura</td><td>subir<span class="end">á</span></td></tr>
-          <tr><td>nosotros</td><td>subir<span class="end">emos</span></td></tr>
-          <tr><td>vosotros</td><td>subir<span class="end">éis</span></td></tr>
-          <tr><td>ellos / las fábricas</td><td>subir<span class="end">án</span></td></tr>
-        </tbody>
-      </table>
-      <table class="tb">
-        <thead><tr><th>Irregulares</th><th>raíz</th><th>ejemplo</th></tr></thead>
-        <tbody>
-          <tr><td>haber ★</td><td class="stem">habr-</td><td><b>habrá</b> = there will be</td></tr>
-          <tr><td>hacer</td><td class="stem">har-</td><td>haremos</td></tr>
-          <tr><td>poder</td><td class="stem">podr-</td><td>podremos</td></tr>
-          <tr><td>tener</td><td class="stem">tendr-</td><td>tendremos</td></tr>
-          <tr><td>salir · poner · venir</td><td class="stem">saldr- · pondr- · vendr-</td><td>saldrá</td></tr>
-          <tr><td>decir · saber · querer</td><td class="stem">dir- · sabr- · querr-</td><td>dirán</td></tr>
-        </tbody>
-      </table>
-      <div class="list">
-        <div class="ph" data-ins="Si no reducimos las emisiones, la temperatura subirá. "><b>Si no reducimos las emisiones, la temperatura subirá.</b></div>
-        <div class="ph" data-ins="Si compramos tanta ropa, las fábricas producirán más CO₂. "><b>Si compramos tanta ropa, las fábricas producirán más CO₂.</b></div>
-        <div class="ph" data-ins="Si seguimos así, habrá más sequías. "><b>Si seguimos así, habrá más sequías.</b></div>
-      </div>
-      <div class="tip">⚠︎ Después de <b>si</b>, nunca futuro: <s>si cambiaremos</s> → <b>si cambiamos</b>.</div>
-    </div>
-
-    <div class="card" id="k-voc">
-      <h3>Palabras clave</h3>
-      <div class="voc">
-        <div class="ph" data-ins="las emisiones "><b>las emisiones</b><span class="gl">emissions · emisyonlar</span></div>
-        <div class="ph" data-ins="el calentamiento global "><b>el calentamiento global</b><span class="gl">global warming · küresel ısınma</span></div>
-        <div class="ph" data-ins="la producción de energía "><b>la producción de energía</b><span class="gl">energy production · enerji üretimi</span></div>
-        <div class="ph" data-ins="la producción masiva "><b>la producción masiva</b><span class="gl">mass production · seri üretim</span></div>
-        <div class="ph" data-ins="el carbón "><b>el carbón</b><span class="gl">coal · kömür</span></div>
-        <div class="ph" data-ins="el petróleo "><b>el petróleo</b><span class="gl">oil · petrol</span></div>
-        <div class="ph" data-ins="la fábrica "><b>la fábrica</b><span class="gl">factory · fabrika</span></div>
-        <div class="ph" data-ins="los residuos "><b>los residuos</b><span class="gl">waste · atık</span></div>
-        <div class="ph" data-ins="la contaminación "><b>la contaminación</b><span class="gl">pollution · kirlilik</span></div>
-        <div class="ph" data-ins="las olas de calor "><b>las olas de calor</b><span class="gl">heatwaves · sıcak hava dalgaları</span></div>
-        <div class="ph" data-ins="la sequía "><b>la sequía</b><span class="gl">drought · kuraklık</span></div>
-        <div class="ph" data-ins="las inundaciones "><b>las inundaciones</b><span class="gl">floods · seller</span></div>
-      </div>
-    </div>
-    </div>
-    <div class="stack">
     <div class="card" id="k-real">
-      <h3>¿De dónde viene el CO₂? <small>de verdad</small></h3>
+      <h3>No son solo los coches</h3>
       <div class="mr">
-        <div class="no"><span class="t">Idea falsa</span><p>«El problema son los coches. Si comparto coche, ya está.»</p></div>
-        <div class="yes"><span class="t">Realidad</span><p>El problema más grande es <u>cómo producimos la energía</u>: quemamos carbón, petróleo y gas.</p></div>
+        <div class="no"><span class="t">Idea falsa</span><p>«Si comparto coche, ya está.»</p></div>
+        <div class="yes"><span class="t">Realidad</span><p>El problema más grande es cómo producimos la energía.</p></div>
       </div>
-      <p class="big">Casi <em>3 de cada 4</em> toneladas de gases vienen de la <em>energía</em>.</p>
-      <div class="bars" role="img" aria-label="Emisiones mundiales por sector, aproximadas: industria 24 por ciento, agricultura y bosques 18, edificios 18, transporte 16 (coches y camiones 12), otra energía 15, cemento y química 5, basura 3">
-        <span class="cap">Emisiones del mundo por sector (aprox., % del total)</span>
-        <div class="b"><span>⚡ Fábricas e industria<span class="sub"><br>energía para producir cosas</span></span><div class="track"><div class="fill" style="width:72%"></div><span class="v" style="left:72%">24</span></div></div>
-        <div class="b"><span>⚡ Edificios<span class="sub"><br>casas, oficinas, universidades</span></span><div class="track"><div class="fill" style="width:53%"></div><span class="v" style="left:53%">18</span></div></div>
-        <div class="b"><span>⚡ Transporte<span class="sub"><br>coches, camiones, aviones, barcos</span></span><div class="track"><div class="fill" style="width:48%"></div><span class="v" style="left:48%">16</span></div></div>
-        <div class="b car"><span>&nbsp;&nbsp;↳ solo coches y camiones</span><div class="track"><div class="fill" style="width:36%"></div><span class="v" style="left:36%">12</span></div></div>
-        <div class="b"><span>⚡ Otra energía<span class="sub"><br>fugas de gas, etc.</span></span><div class="track"><div class="fill" style="width:45%"></div><span class="v" style="left:45%">15</span></div></div>
-        <div class="b other"><span>Comida, vacas y bosques</span><div class="track"><div class="fill" style="width:54%"></div><span class="v" style="left:54%">18</span></div></div>
-        <div class="b other"><span>Cemento y química</span><div class="track"><div class="fill" style="width:15%"></div><span class="v" style="left:15%">5</span></div></div>
-        <div class="b other"><span>Basura</span><div class="track"><div class="fill" style="width:9%"></div><span class="v" style="left:9%">3</span></div></div>
-        <div class="key"><span><i style="background:var(--pr)"></i>⚡ energía: 73 % en total</span><span><i style="background:var(--muted);opacity:.45"></i>otras causas</span></div>
-        <span class="cap">Fuente: Our World in Data / Climate Watch, gases de efecto invernadero, 2016.</span>
+      <p class="big">Casi <em>3 de cada 4</em> toneladas vienen de la <em>energía</em>.</p>
+      <div class="bars" role="img" aria-label="Emisiones mundiales por sector, aproximadas: industria 24 por ciento, edificios 18, transporte 16 (coches y camiones 12), otra energía 15, comida y bosques 18, cemento y química 5, basura 3">
+        <div class="b"><span>⚡ Fábricas</span><div class="track"><div class="fill" style="width:72%"></div><span class="v" style="left:72%">24 %</span></div></div>
+        <div class="b"><span>⚡ Edificios</span><div class="track"><div class="fill" style="width:53%"></div><span class="v" style="left:53%">18 %</span></div></div>
+        <div class="b"><span>⚡ Transporte</span><div class="track"><div class="fill" style="width:48%"></div><span class="v" style="left:48%">16 %</span></div></div>
+        <div class="b car"><span>&nbsp;&nbsp;↳ coches y camiones</span><div class="track"><div class="fill" style="width:36%"></div><span class="v" style="left:36%">12 %</span></div></div>
+        <div class="b"><span>⚡ Otra energía</span><div class="track"><div class="fill" style="width:45%"></div><span class="v" style="left:45%">15 %</span></div></div>
+        <div class="b other"><span>Comida y bosques</span><div class="track"><div class="fill" style="width:54%"></div><span class="v" style="left:54%">18 %</span></div></div>
+        <div class="b other"><span>Cemento, química</span><div class="track"><div class="fill" style="width:15%"></div><span class="v" style="left:15%">5 %</span></div></div>
+        <div class="b other"><span>Basura</span><div class="track"><div class="fill" style="width:9%"></div><span class="v" style="left:9%">3 %</span></div></div>
+        <div class="key"><span><i style="background:var(--pr)"></i>⚡ energía: 73 %</span><span>Our World in Data, 2016 (aprox.)</span></div>
       </div>
-      <div class="tip"><b>Conclusión:</b> compartir coche está bien, pero el gran cambio es <b>producir energía limpia</b> y <b>producir y comprar menos</b>.</div>
     </div>
 
     <div class="card" id="k-chain">
-      <h3>La cadena: causa → efecto</h3>
+      <h3>Causa → efecto</h3>
       <div class="chain">
-        <div class="s">Compramos y producimos muchas cosas<small>producción masiva · mass production · seri üretim</small></div><div class="ar">↓</div>
-        <div class="s">Las fábricas, las casas y el transporte necesitan energía</div><div class="ar">↓</div>
-        <div class="s">Quemamos carbón, petróleo y gas<small>to burn · yakmak</small></div><div class="ar">↓</div>
+        <div class="s">Producimos y compramos mucho</div><div class="ar">↓</div>
+        <div class="s">Todo necesita energía</div><div class="ar">↓</div>
+        <div class="s">Quemamos carbón, petróleo y gas</div><div class="ar">↓</div>
         <div class="s">Sale CO₂ al aire</div><div class="ar">↓</div>
-        <div class="s">El CO₂ guarda el calor del sol</div><div class="ar">↓</div>
-        <div class="s hot">Calentamiento global<small>global warming · küresel ısınma</small></div><div class="ar">↓</div>
+        <div class="s">El CO₂ guarda el calor</div><div class="ar">↓</div>
+        <div class="s hot">Calentamiento global</div><div class="ar">↓</div>
         <div class="s">Olas de calor, sequías, inundaciones</div>
       </div>
     </div>
 
     <div class="card" id="k-life">
       <h3>La vida de un producto</h3>
-      <p>Cada cosa que compramos produce CO₂ cuatro veces:</p>
       <div class="life">
-        <div><span class="dot">1</span><b>Extracción</b><span>Sacamos petróleo, gas y minerales de la tierra.</span></div>
-        <div><span class="dot">2</span><b>Fabricación</b><span>Las fábricas usan mucha energía, a menudo de carbón.</span></div>
-        <div><span class="dot">3</span><b>Transporte</b><span>Barcos, camiones y aviones llevan el producto. Usan gasolina.</span></div>
-        <div><span class="dot">4</span><b>Uso y residuos</b><span>Lo usamos poco tiempo y después es basura.</span></div>
+        <div><span class="dot">1</span><span><b>Extracción</b><br>sacar petróleo, gas, minerales</span></div>
+        <div><span class="dot">2</span><span><b>Fabricación</b><br>fábricas con mucha energía</span></div>
+        <div><span class="dot">3</span><span><b>Transporte</b><br>barcos, camiones, aviones</span></div>
+        <div><span class="dot">4</span><span><b>Uso y residuos</b><br>lo usamos y es basura</span></div>
       </div>
-      <div class="tip">Un producto <b>local</b> ahorra CO₂ en el paso 3. Si la fábrica usa <b>energía limpia</b>, también en el paso 2. Y si compramos <b>menos</b>, en los cuatro.</div>
+      <p class="note">Local = menos paso 3. Energía limpia = menos paso 2. Comprar menos = menos en los cuatro.</p>
     </div>
 
+    <div class="card" id="k-all">
+      <h3>Sirve para todo <small>● = donde hay más CO₂</small></h3>
+      <div class="tbx"><table class="all">
+        <thead><tr><th></th><th><span>1</span>Extracción</th><th><span>2</span>Fabricación</th><th><span>3</span>Transporte</th><th><span>4</span>Uso y residuos</th></tr></thead>
+        <tbody>
+          <tr><th>Comida</th><td>agua, tierra, bosques cortados</td><td class="max">granjas y vacas</td><td>camiones, aviones</td><td>comida que tiramos</td></tr>
+          <tr><th>Ropa</th><td>algodón, petróleo (poliéster)</td><td class="max">fábricas con carbón</td><td>barcos desde Asia</td><td>la usamos poco y la tiramos</td></tr>
+          <tr><th>IA</th><td>minerales para chips</td><td>chips y ordenadores</td><td>datos por internet</td><td class="max">centros de datos: electricidad y agua</td></tr>
+          <tr><th>Energía</th><td>minas de carbón, pozos de gas</td><td>centrales eléctricas</td><td>gasoductos, barcos</td><td class="max">quemar carbón, petróleo y gas</td></tr>
+          <tr><th>Transporte</th><td>metal, litio</td><td>fábricas de coches</td><td>llevar los coches</td><td class="max">gasolina, queroseno</td></tr>
+        </tbody>
+      </table></div>
     </div>
   </div>
 
-  <!-- ================= 3 · SOLUCIONES ================= -->
-  <div class="col so" id="c-so">
-    <div class="head"><span class="n">Párrafo 3 · ~75 palabras</span><h2>Soluciones</h2><p>¿Qué podemos hacer?</p></div>
+  <!-- ================= LEFT ================= -->
+  <div class="col" id="c-left">
+    <div class="card in" id="k-in">
+      <div class="sec"><span class="kick">Párrafo 1 · ~45 palabras</span><h2>Introducción</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="¡Hola a todos y a todas! ">¡Hola a todos y a todas!</li>
+        <li class="ph" data-ins="¡Hola, compañeros y compañeras! ">¡Hola, compañeros y compañeras!</li>
+        <li class="ph" data-ins="Me llamo Eda y estudio en King's College, en Londres. ">Me llamo… y estudio en…</li>
+        <li class="ph" data-ins="En este artículo voy a hablar sobre ">En este artículo voy a hablar sobre…</li>
+        <li class="ph" data-ins="Hoy en día, uno de los problemas más grandes es ">Hoy en día, uno de los problemas más grandes es…</li>
+        <li class="ph" data-ins="¿Sabéis que ">¿Sabéis que…?</li>
+        <li class="ph" data-ins="Muchas personas piensan que el problema son solo los coches, pero en realidad ">Muchas personas piensan que…, pero en realidad…</li>
+        <li class="ph" data-ins="Es importante para nosotros porque ">Es importante para nosotros porque…</li>
+      </ul>
+    </div>
 
-    <div class="card tint-so" id="k-so">
-      <h3>Para recomendar</h3>
-      <div class="list">
-        <div class="ph" data-ins="Para reducir las emisiones, los estudiantes podemos "><b><span class="num">1</span>Para reducir las emisiones, los estudiantes podemos…</b><span class="ex">…comprar productos locales.</span><span class="gl">To reduce emissions, we can… · Emisyonları azaltmak için … yapabiliriz.</span></div>
-        <div class="ph" data-ins="Es necesario "><b><span class="num">2</span>Es importante / Es necesario + infinitivo</b><span class="ex">Es necesario producir energía sostenible.</span><span class="gl">It is important / necessary to… · … önemli / gerekli.</span></div>
-        <div class="ph" data-ins="Deberíamos "><b><span class="num">3</span>Deberíamos… / La gente debería…</b><span class="ex">…comprar menos y apoyar los negocios locales.</span><span class="gl">We should… · …meliyiz.</span></div>
-        <div class="ph" data-ins="Sería una buena idea "><b><span class="num">4</span>Sería una buena idea + infinitivo</b><span class="ex">…poner paneles solares en la universidad.</span><span class="gl">It would be a good idea to… · … iyi bir fikir olurdu.</span></div>
-        <div class="ph" data-ins="Recomiendo "><b><span class="num">5</span>Recomiendo + infinitivo</b><span class="ex">Recomiendo apoyar los negocios locales.</span><span class="gl">I recommend… · … öneririm.</span></div>
-        <div class="ph" data-ins="Si usamos energía solar, reduciremos el CO₂. "><b><span class="num">6</span>Si usamos…, reduciremos…</b><span class="ex">Si usamos energía solar, reduciremos el CO₂.</span><span class="gl">If we use…, we will reduce… · …kullanırsak, …azaltacağız.</span></div>
+    <div class="card pr" id="k-pr">
+      <div class="sec"><span class="kick">Párrafo 2 · ~80 palabras</span><h2>El problema</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="El problema principal es ">El problema principal es…</li>
+        <li class="ph" data-ins="Hoy en día, muchas fábricas usan ">Hoy en día, muchas fábricas usan…</li>
+        <li class="ph" data-ins="En mi universidad he observado que ">En mi universidad / ciudad he observado que…</li>
+        <li class="ph" data-ins="Hay demasiados ">Hay demasiado / demasiados…</li>
+        <li class="ph" data-ins="Además, ">Además, …</li>
+      </ul>
+      <span class="kick">Causa → efecto</span>
+      <ul class="ls">
+        <li class="ph" data-ins="Esto causa ">Esto causa…</li>
+        <li class="ph" data-ins="Por eso ">Por eso…</li>
+        <li class="ph" data-ins="Si no cambiamos nada, habrá ">Si no cambiamos nada, habrá… <i>→ futuro</i></li>
+      </ul>
+    </div>
+
+    <div class="card gr" id="k-fut">
+      <h3>Futuro <small>si pasa esto → pasará esto</small></h3>
+      <p class="formula"><span class="p">Si + presente</span>, <span class="f">futuro</span></p>
+      <p>infinitivo + <span class="end">é · ás · á · emos · éis · án</span></p>
+      <div class="chips">
+        <span class="chip ph" data-ins="habrá "><b><span class="stem">habr</span>á</b><i>there will be</i></span>
+        <span class="chip ph" data-ins="haremos "><span class="stem">har</span>é</span>
+        <span class="chip ph" data-ins="podremos "><span class="stem">podr</span>é</span>
+        <span class="chip ph" data-ins="tendremos "><span class="stem">tendr</span>é</span>
+        <span class="chip ph" data-ins="saldrá "><span class="stem">saldr</span>é</span>
+        <span class="chip ph" data-ins="pondrá "><span class="stem">pondr</span>é</span>
+        <span class="chip ph" data-ins="vendrá "><span class="stem">vendr</span>é</span>
+        <span class="chip ph" data-ins="dirá "><span class="stem">dir</span>é</span>
+        <span class="chip ph" data-ins="sabrá "><span class="stem">sabr</span>é</span>
+        <span class="chip ph" data-ins="querrá "><span class="stem">querr</span>é</span>
       </div>
-      <button class="goto gr" data-go="k-cond" type="button">→ ¿Cómo se hace el condicional?</button>
+      <p class="note">⚠︎ <b>si cambiamos</b>, nunca <s>si cambiaremos</s></p>
+    </div>
+
+    <div class="card" id="k-voc">
+      <h3>Palabras clave</h3>
+      <div class="chips">
+        <span class="chip ph" data-ins="las emisiones ">las emisiones</span>
+        <span class="chip ph" data-ins="el calentamiento global ">el calentamiento global</span>
+        <span class="chip ph" data-ins="la producción de energía ">la producción de energía</span>
+        <span class="chip ph" data-ins="la producción masiva ">la producción masiva</span>
+        <span class="chip ph" data-ins="el carbón ">el carbón</span>
+        <span class="chip ph" data-ins="el petróleo ">el petróleo</span>
+        <span class="chip ph" data-ins="la fábrica ">la fábrica</span>
+        <span class="chip ph" data-ins="la contaminación ">la contaminación</span>
+        <span class="chip ph" data-ins="los residuos ">los residuos</span>
+        <span class="chip ph" data-ins="las olas de calor ">las olas de calor</span>
+        <span class="chip ph" data-ins="la sequía ">la sequía</span>
+        <span class="chip ph" data-ins="las inundaciones ">las inundaciones</span>
+        <span class="chip ph" data-ins="la energía sostenible ">la energía sostenible</span>
+        <span class="chip ph" data-ins="el suministro local ">el suministro local</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CENTRE · writing page ================= -->
+  <div class="col" id="c-mid">
+    <div class="card" id="k-write">
+      <h2>Mi artículo</h2>
+      <p>Para el boletín de una universidad de Madrid · campaña de sostenibilidad · <b>200–250 palabras</b> · 40 min</p>
+      <div class="parts"><span class="pa">1 · Saludo e introducción</span><span class="pb">2 · Problemas que he observado</span><span class="pc">3 · Recomendaciones</span><span class="pd">4 · Conclusión</span></div>
+      <p class="note">Toca una frase del mapa y aparece aquí, donde está el cursor.</p>
+      <textarea id="draft" lang="es" spellcheck="false" placeholder="Título&#10;&#10;¡Hola a todos y a todas! En este artículo voy a hablar sobre…"></textarea>
+      <div class="wbar"><span class="wc" id="wc">0 palabras</span><span class="paras" id="paras"></span><span style="flex:1"></span>
+        <button class="btn" id="undoBtn" type="button" disabled>↶ Deshacer</button><button class="btn" id="copyBtn" type="button">Copiar</button></div>
+    </div>
+
+    <div class="card cn" id="k-cn">
+      <h3>Conectores <small>usa 5 o más</small></h3>
+      <div class="chips">
+        <span class="chip ph" data-ins="y "><b>y</b><i>and</i></span>
+        <span class="chip ph" data-ins="Además, "><b>además</b><i>moreover</i></span>
+        <span class="chip ph" data-ins="también "><b>también</b><i>also</i></span>
+        <span class="chip ph" data-ins="pero "><b>pero</b><i>but</i></span>
+        <span class="chip ph" data-ins="Sin embargo, "><b>sin embargo</b><i>however</i></span>
+        <span class="chip ph" data-ins="Aunque "><b>aunque</b><i>although</i></span>
+        <span class="chip ph" data-ins="porque "><b>porque</b><i>because</i></span>
+        <span class="chip ph" data-ins="Por eso, "><b>por eso</b><i>this is why</i></span>
+        <span class="chip ph" data-ins="Primero, "><b>primero</b><i>first</i></span>
+        <span class="chip ph" data-ins="Por ejemplo, "><b>por ejemplo</b><i>for example</i></span>
+        <span class="chip ph" data-ins="En conclusión, "><b>en conclusión</b><i>in conclusion</i></span>
+      </div>
+    </div>
+
+    <div class="card" id="k-model">
+      <h3>Un modelo <small id="mWords"></small></h3>
+      <div class="mkey"><span class="st">frase de inicio</span><span class="c">conector</span><span class="vf">futuro</span><span class="vc">condicional</span></div>
+      <div class="mt">El CO₂ no viene solo de los coches</div>
+      <p class="para p1"><span class="st">¡Hola a todos y a todas!</span> Me llamo Eda <span class="c">y</span> estudio en King's College, en Londres. <span class="st">En este artículo voy a hablar sobre</span> las emisiones de CO₂. <span class="st">Muchas personas piensan que</span> el problema son solo los coches, <span class="c">pero</span> en realidad es más grande. Es importante para nosotros <span class="c">porque</span> es nuestro futuro.</p>
+      <p class="para p2"><span class="st">El problema principal es</span> la producción de energía. <span class="st">Hoy en día,</span> muchas fábricas <span class="c">y</span> casas usan electricidad de carbón <span class="c">y</span> de gas. <span class="c">Además,</span> compramos demasiadas cosas: ropa, móviles, plástico… Cada producto necesita energía en la fábrica <span class="c">y</span> transporte para llegar a la tienda. <span class="st">En mi universidad he observado que</span> la cafetería vende fruta de países muy lejanos. <span class="c">Por eso</span> hay tanto CO₂ en el aire. Si no cambiamos nada, <span class="vf">habrá</span> más olas de calor <span class="c">y</span> sequías.</p>
+      <p class="para p3"><span class="st">Para reducir las emisiones, los estudiantes podemos</span> hacer muchas cosas. <span class="c">Primero,</span> <span class="vc">deberíamos</span> comprar menos ropa <span class="c">y</span> apoyar los negocios locales. <span class="c">También</span> <span class="st">es importante</span> usar el transporte público. <span class="c">Además,</span> <span class="vc">podríamos</span> pedir a la universidad energía sostenible, como la solar, <span class="c">y</span> comida local en la cafetería. Compartir coche está bien; <span class="c">sin embargo</span>, no es suficiente.</p>
+      <p class="para p4"><span class="st">En conclusión,</span> el CO₂ es un problema de todos, no solo de los coches. <span class="c">Aunque</span> es un problema muy grande, si todos actuamos, <span class="vf">podremos</span> hacer un cambio. <span class="st">¡Juntos podemos!</span></p>
+    </div>
+
+    <div class="card mold" id="k-mold">
+      <h3>El esqueleto <small>toca una línea, rellena los ___</small></h3>
+      <h4 style="color:var(--in)">1 · Introducción</h4>
+      <div class="ph" data-ins="¡Hola a todos y a todas! Me llamo ___ y estudio en ___. En este artículo voy a hablar sobre ___. ">¡Hola a todos y a todas! Me llamo <u>___</u> y estudio en <u>___</u>. En este artículo voy a hablar sobre <u>___</u>.</div>
+      <div class="ph" data-ins="Muchas personas piensan que ___, pero en realidad ___. Es importante para nosotros porque ___. ">Muchas personas piensan que <u>___</u>, pero en realidad <u>___</u>. Es importante para nosotros porque <u>___</u>.</div>
+      <h4 style="color:var(--pr)">2 · El problema</h4>
+      <div class="ph" data-ins="El problema principal es ___. Hoy en día, ___. Además, ___. ">El problema principal es <u>___</u>. Hoy en día, <u>___</u>. Además, <u>___</u>.</div>
+      <div class="ph" data-ins="En mi ___ he observado que ___. Por eso ___. Si no ___, habrá ___. ">En mi <u>___</u> he observado que <u>___</u>. Por eso <u>___</u>. Si no <u>___</u>, habrá <u>___</u>.</div>
+      <h4 style="color:var(--so)">3 · Soluciones</h4>
+      <div class="ph" data-ins="Para reducir ___, los estudiantes podemos ___. Primero, deberíamos ___. También es importante ___. ">Para reducir <u>___</u>, los estudiantes podemos <u>___</u>. Primero, deberíamos <u>___</u>. También es importante <u>___</u>.</div>
+      <div class="ph" data-ins="Además, podríamos pedir a la universidad ___. ___ está bien; sin embargo, ___. ">Además, podríamos pedir a la universidad <u>___</u>. <u>___</u> está bien; sin embargo, <u>___</u>.</div>
+      <h4 style="color:var(--co)">4 · Conclusión</h4>
+      <div class="ph" data-ins="En conclusión, ___. Aunque ___, si todos ___, podremos ___. ">En conclusión, <u>___</u>. Aunque <u>___</u>, si todos <u>___</u>, podremos <u>___</u>.</div>
+    </div>
+  </div>
+
+  <!-- ================= RIGHT ================= -->
+  <div class="col" id="c-right">
+    <div class="card so" id="k-so">
+      <div class="sec"><span class="kick">Párrafo 3 · ~75 palabras</span><h2>Soluciones</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="Para reducir las emisiones, los estudiantes podemos ">Para reducir las emisiones, los estudiantes podemos…</li>
+        <li class="ph" data-ins="Es importante ">Es importante / necesario + infinitivo</li>
+        <li class="ph" data-ins="Deberíamos ">Deberíamos… / La gente debería… <i>→ condicional</i></li>
+        <li class="ph" data-ins="Podríamos pedir a la universidad ">Podríamos pedir a la universidad…</li>
+        <li class="ph" data-ins="Sería una buena idea ">Sería una buena idea + infinitivo</li>
+        <li class="ph" data-ins="Recomiendo ">Recomiendo + infinitivo</li>
+        <li class="ph" data-ins="Si usamos energía solar, reduciremos el CO₂. ">Si usamos…, reduciremos…</li>
+      </ul>
     </div>
 
     <div class="card" id="k-who">
       <h3>¿Qué podemos hacer?</h3>
-      <p>El examen pide: <b>los estudiantes y la gente en general</b>. Las ideas que más ayudan conectan con la energía.</p>
       <div class="who">
         <div>
-          <div class="lvl"><b>Nosotros, los estudiantes y la gente</b><span><span class="meter"><i class="on"></i><i class="on"></i><i></i></span> lo que pide el examen</span></div>
-          <div class="row">
-            <div class="ph" data-ins="elegir una compañía de electricidad verde"><b>elegir electricidad verde en casa</b><span class="gl">green electricity · yeşil elektrik</span></div>
-            <div class="ph" data-ins="comprar menos ropa"><b>comprar menos</b><span class="gl">fábricas → menos energía</span></div>
-            <div class="ph" data-ins="apoyar los negocios locales"><b>apoyar los negocios locales</b><span class="gl">support · desteklemek</span></div>
-            <div class="ph" data-ins="comprar verduras locales"><b>comprar verduras locales</b><span class="gl">suministro local · yerel tedarik</span></div>
-            <div class="ph" data-ins="comer menos carne"><b>comer menos carne</b></div>
-            <div class="ph" data-ins="usar el transporte público"><b>usar el transporte público</b><span class="gl">toplu taşıma</span></div>
-            <div class="ph" data-ins="tomar el tren en vez del avión"><b>tren en vez de avión</b></div>
-            <div class="ph" data-ins="compartir coche"><b>compartir coche</b><span class="gl">car sharing</span></div>
-            <div class="ph" data-ins="apagar las luces"><b>apagar las luces</b></div>
+          <div class="lvl"><b>Nosotros y la gente</b><span><span class="meter"><i class="on"></i><i class="on"></i><i></i></span>lo que pide el examen</span></div>
+          <div class="chips">
+            <span class="chip ph" data-ins="elegir una compañía de electricidad verde">electricidad verde en casa</span>
+            <span class="chip ph" data-ins="comprar menos ropa">comprar menos</span>
+            <span class="chip ph" data-ins="apoyar los negocios locales">apoyar los negocios locales</span>
+            <span class="chip ph" data-ins="comprar verduras locales">verduras locales</span>
+            <span class="chip ph" data-ins="comer menos carne">comer menos carne</span>
+            <span class="chip ph" data-ins="usar el transporte público">transporte público</span>
+            <span class="chip ph" data-ins="tomar el tren en vez del avión">tren en vez de avión</span>
+            <span class="chip ph" data-ins="compartir coche">compartir coche</span>
+            <span class="chip ph" data-ins="apagar las luces">apagar las luces</span>
           </div>
         </div>
         <div>
-          <div class="lvl"><b>Pedir a la universidad</b><span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i></span> los estudiantes tienen voz</span></div>
-          <div class="row">
-            <div class="ph" data-ins="pedir a la universidad energía sostenible, como la solar"><b>pedir energía sostenible</b><span class="gl">solar, eólica (wind · rüzgâr)</span></div>
-            <div class="ph" data-ins="poner paneles solares"><b>poner paneles solares</b><span class="gl">güneş panelleri</span></div>
-            <div class="ph" data-ins="vender comida local en la cafetería"><b>comida local en la cafetería</b></div>
+          <div class="lvl"><b>Pedir a la universidad</b><span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i></span>tenemos voz</span></div>
+          <div class="chips">
+            <span class="chip ph" data-ins="energía sostenible, como la solar">energía sostenible</span>
+            <span class="chip ph" data-ins="paneles solares">paneles solares</span>
+            <span class="chip ph" data-ins="comida local en la cafetería">comida local en la cafetería</span>
           </div>
         </div>
         <div>
-          <div class="lvl"><b>Gobiernos y empresas</b><span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i></span> impacto grande</span></div>
-          <div class="row">
-            <div class="ph" data-ins="producir energía sostenible"><b>producir energía sostenible</b></div>
-            <div class="ph" data-ins="dejar de usar carbón"><b>dejar de usar carbón</b><span class="gl">stop using coal</span></div>
-            <div class="ph" data-ins="regular la producción masiva"><b>regular la producción masiva</b><span class="gl">düzenlemek</span></div>
+          <div class="lvl"><b>Gobiernos y empresas</b><span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i></span>impacto grande</span></div>
+          <div class="chips">
+            <span class="chip ph" data-ins="producir energía sostenible">producir energía sostenible</span>
+            <span class="chip ph" data-ins="dejar de usar carbón">dejar de usar carbón</span>
+            <span class="chip ph" data-ins="regular la producción masiva">regular la producción masiva</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="card tint-gr" id="k-cond">
-      <h3>El condicional <small>would / should · -meli, -abilir</small></h3>
-      <p>Para dar <b>consejos</b> con educación.</p>
-      <div class="formula"><span class="f">infinitivo + ía</span></div>
-      <table class="tb">
-        <thead><tr><th></th><th>deber (should)</th><th>poder (could)</th></tr></thead>
-        <tbody>
-          <tr><td>yo</td><td>deber<span class="end">ía</span></td><td>podr<span class="end">ía</span></td></tr>
-          <tr><td>tú</td><td>deber<span class="end">ías</span></td><td>podr<span class="end">ías</span></td></tr>
-          <tr><td>él / la universidad</td><td>deber<span class="end">ía</span></td><td>podr<span class="end">ía</span></td></tr>
-          <tr><td>nosotros</td><td>deber<span class="end">íamos</span></td><td>podr<span class="end">íamos</span></td></tr>
-          <tr><td>vosotros</td><td>deber<span class="end">íais</span></td><td>podr<span class="end">íais</span></td></tr>
-          <tr><td>ellos / los gobiernos</td><td>deber<span class="end">ían</span></td><td>podr<span class="end">ían</span></td></tr>
-        </tbody>
-      </table>
-      <div class="tip"><b>Truco:</b> las mismas raíces irregulares que el futuro. Solo cambia la terminación.</div>
-      <table class="tb">
-        <thead><tr><th></th><th>futuro · seguro</th><th>condicional · consejo</th></tr></thead>
-        <tbody>
-          <tr><td>poder</td><td>podr<span class="end">emos</span></td><td>podr<span class="end">íamos</span></td></tr>
-          <tr><td>hacer</td><td>har<span class="end">á</span></td><td>har<span class="end">ía</span></td></tr>
-          <tr><td>haber</td><td>habr<span class="end">á</span></td><td>habr<span class="end">ía</span></td></tr>
-          <tr><td>ser</td><td>ser<span class="end">á</span></td><td>ser<span class="end">ía</span></td></tr>
-        </tbody>
-      </table>
-      <div class="list">
-        <div class="ph" data-ins="Los gobiernos deberían producir energía sostenible. "><b>Los gobiernos deberían producir energía sostenible.</b></div>
-        <div class="ph" data-ins="Mi universidad podría poner paneles solares. "><b>Mi universidad podría poner paneles solares.</b></div>
-        <div class="ph" data-ins="Deberíamos comprar menos ropa. "><b>Deberíamos comprar menos ropa.</b></div>
-        <div class="ph" data-ins="Sería mejor usar el transporte público. "><b>Sería mejor usar el transporte público.</b></div>
+    <div class="card gr" id="k-cond">
+      <h3>Condicional <small>para dar consejos</small></h3>
+      <p>infinitivo + <span class="end">ía · ías · ía · íamos · íais · ían</span></p>
+      <div class="chips">
+        <span class="chip ph" data-ins="debería "><b>debería</b><i>should</i></span>
+        <span class="chip ph" data-ins="deberíamos "><b>deberíamos</b></span>
+        <span class="chip ph" data-ins="deberían "><b>deberían</b></span>
+        <span class="chip ph" data-ins="podría "><b>podría</b><i>could</i></span>
+        <span class="chip ph" data-ins="podríamos "><b>podríamos</b></span>
+        <span class="chip ph" data-ins="sería "><b>sería</b><i>would be</i></span>
       </div>
+      <p class="note">Mismas raíces que el futuro: <span class="stem">podr</span>é → <span class="stem">podr</span>ía · <span class="stem">habr</span>á → <span class="stem">habr</span>ía</p>
     </div>
-  </div>
 
-  <!-- ================= 4 · CONCLUSIÓN ================= -->
-  <div class="col co" id="c-co">
-    <div class="head"><span class="n">Párrafo 4 · ~35 palabras</span><h2>Conclusión</h2><p>¿Cómo termino?</p></div>
-
-    <div class="card tint-co" id="k-co">
-      <h3>Para terminar <small>4 formas</small></h3>
-      <div class="list">
-        <div class="ph" data-ins="En conclusión, "><b><span class="num">1</span>En conclusión, …</b><span class="ex">…el CO₂ es un problema de todos.</span><span class="gl">In conclusion · Sonuç olarak</span></div>
-        <div class="ph" data-ins="Para concluir, "><b><span class="num">2</span>Para concluir, …</b><span class="gl">To conclude · Son olarak</span></div>
-        <div class="ph" data-ins="En resumen, "><b><span class="num">3</span>En resumen, …</b><span class="gl">In short · Özetle</span></div>
-        <div class="ph" data-ins="Todos tenemos que actuar para hacer un cambio. "><b><span class="num">4</span>Todos tenemos que actuar para hacer un cambio.</b><span class="gl">We all have to act to make a change. · Bir değişiklik yapmak için hepimiz harekete geçmeliyiz.</span></div>
-      </div>
-      <div class="kick">La última frase</div>
-      <div class="list">
-        <div class="ph" data-ins="Si todos hacemos un pequeño cambio, el planeta será más verde. "><b>Si todos hacemos un pequeño cambio, el planeta será más verde.</b></div>
-        <div class="ph" data-ins="No es solo un problema de coches: es un problema de energía. "><b>No es solo un problema de coches: es un problema de energía.</b></div>
-        <div class="ph" data-ins="¡Juntos podemos hacer un cambio! "><b>¡Juntos podemos hacer un cambio!</b><span class="gl">Together we can make a change! · Birlikte fark yaratabiliriz!</span></div>
-        <div class="ph" data-ins="Gracias por leer. "><b>Gracias por leer.</b></div>
-      </div>
+    <div class="card co" id="k-co">
+      <div class="sec"><span class="kick">Párrafo 4 · ~35 palabras</span><h2>Conclusión</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="En conclusión, ">En conclusión, …</li>
+        <li class="ph" data-ins="Para concluir, ">Para concluir, …</li>
+        <li class="ph" data-ins="En resumen, ">En resumen, …</li>
+        <li class="ph" data-ins="Todos tenemos que actuar para hacer un cambio. ">Todos tenemos que actuar para hacer un cambio.</li>
+        <li class="ph" data-ins="Si todos hacemos un pequeño cambio, el planeta será más verde. ">Si todos hacemos un pequeño cambio, el planeta será más verde.</li>
+        <li class="ph" data-ins="No es solo un problema de coches: es un problema de energía. ">No es solo un problema de coches: es un problema de energía.</li>
+        <li class="ph" data-ins="¡Juntos podemos hacer un cambio! ">¡Juntos podemos hacer un cambio!</li>
+      </ul>
     </div>
 
     <div class="card" id="k-check">
       <h3>Antes de entregar</h3>
       <ul class="checks">
-        <li>Título y saludo</li>
-        <li>4 párrafos</li>
+        <li>Título, saludo y 4 párrafos</li>
         <li>5 conectores distintos</li>
-        <li>Un <b>si + presente, futuro</b></li>
-        <li>Un <b>debería / podría</b></li>
-        <li>Un <b>he observado</b></li>
+        <li><b>he observado</b> · <b>si + presente, futuro</b> · <b>debería / podría</b></li>
         <li>Tildes: será, habrá, podría</li>
-        <li>Hay (no «han»), habrá (no «habrán»)</li>
-        <li>200–250 palabras</li>
+        <li>200–250 palabras (más de 250 no se corrige)</li>
       </ul>
-    </div>
-  </div>
-
-  <!-- ================= 5 · MODELO ================= -->
-  <div class="col model after" id="c-mo">
-    <div class="head"><span class="n">Todo junto</span><h2>El modelo</h2><p>Un texto posible y su esqueleto.</p></div>
-
-    <div class="card" id="k-model">
-      <div class="mkey"><span><span class="st">frase de inicio</span></span><span><span class="c">conector</span></span><span><span class="vf">futuro</span></span><span><span class="vc">condicional</span></span><span id="mWords"></span></div>
-      <div class="mt">El CO₂ no viene solo de los coches</div>
-      <div class="para p1"><span class="lab">1 · Introducción</span><p><span class="st">¡Hola a todos y a todas!</span> Me llamo Eda <span class="c">y</span> estudio en King's College, en Londres. <span class="st">En este artículo voy a hablar sobre</span> las emisiones de CO₂. <span class="st">Muchas personas piensan que</span> el problema son solo los coches, <span class="c">pero</span> en realidad es más grande. Es importante para nosotros <span class="c">porque</span> es nuestro futuro.</p></div>
-      <div class="para p2"><span class="lab">2 · El problema</span><p><span class="st">El problema principal es</span> la producción de energía. <span class="st">Hoy en día,</span> muchas fábricas <span class="c">y</span> casas usan electricidad de carbón <span class="c">y</span> de gas. <span class="c">Además,</span> compramos demasiadas cosas: ropa, móviles, plástico… Cada producto necesita energía en la fábrica <span class="c">y</span> transporte para llegar a la tienda. <span class="st">En mi universidad he observado que</span> la cafetería vende fruta de países muy lejanos. <span class="c">Por eso</span> hay tanto CO₂ en el aire. Si no cambiamos nada, <span class="vf">habrá</span> más olas de calor <span class="c">y</span> sequías.</p></div>
-      <div class="para p3"><span class="lab">3 · Soluciones</span><p><span class="st">Para reducir las emisiones, los estudiantes podemos</span> hacer muchas cosas. <span class="c">Primero,</span> <span class="vc">deberíamos</span> comprar menos ropa <span class="c">y</span> apoyar los negocios locales. <span class="c">También</span> <span class="st">es importante</span> usar el transporte público. <span class="c">Además,</span> <span class="vc">podríamos</span> pedir a la universidad energía sostenible, como la solar, <span class="c">y</span> comida local en la cafetería. Compartir coche está bien; <span class="c">sin embargo</span>, no es suficiente.</p></div>
-      <div class="para p4"><span class="lab">4 · Conclusión</span><p><span class="st">En conclusión,</span> el CO₂ es un problema de todos, no solo de los coches. <span class="c">Aunque</span> es un problema muy grande, si todos actuamos, <span class="vf">podremos</span> hacer un cambio. <span class="st">¡Juntos podemos!</span></p></div>
-    </div>
-
-    <div class="card mold" id="k-mold">
-      <h3>El esqueleto <small>toca una línea y rellena los huecos ___</small></h3>
-      <h4 class="a">1 · Introducción</h4>
-      <div class="ph" data-ins="¡Hola a todos y a todas! Me llamo ___ y estudio en ___. "><b>¡Hola a todos y a todas! Me llamo <u>___</u> y estudio en <u>___</u>.</b></div>
-      <div class="ph" data-ins="En este artículo voy a hablar sobre ___. "><b>En este artículo voy a hablar sobre <u>___</u>.</b></div>
-      <div class="ph" data-ins="Muchas personas piensan que ___, pero en realidad ___. "><b>Muchas personas piensan que <u>___</u>, pero en realidad <u>___</u>.</b></div>
-      <div class="ph" data-ins="Es importante para nosotros porque ___. "><b>Es importante para nosotros porque <u>___</u>.</b></div>
-      <h4 class="b">2 · El problema</h4>
-      <div class="ph" data-ins="El problema principal es ___. Hoy en día, ___. Además, ___. "><b>El problema principal es <u>___</u>. Hoy en día, <u>___</u>. Además, <u>___</u>.</b></div>
-      <div class="ph" data-ins="En mi ___ he observado que ___. Por eso ___. "><b>En mi <u>___</u> he observado que <u>___</u>. Por eso <u>___</u>.</b></div>
-      <div class="ph" data-ins="Si no ___ (presente), ___ (futuro). "><b>Si no <u>___</u> (presente), <u>___</u> (futuro).</b></div>
-      <h4 class="c">3 · Soluciones</h4>
-      <div class="ph" data-ins="Para reducir ___, los estudiantes podemos ___. Primero, deberíamos ___. "><b>Para reducir <u>___</u>, los estudiantes podemos <u>___</u>. Primero, deberíamos <u>___</u>.</b></div>
-      <div class="ph" data-ins="También es importante ___. Además, podríamos pedir a la universidad ___. "><b>También es importante <u>___</u>. Además, podríamos pedir a la universidad <u>___</u>.</b></div>
-      <div class="ph" data-ins="___ está bien; sin embargo, ___. "><b><u>___</u> está bien; sin embargo, <u>___</u>.</b></div>
-      <h4 class="d">4 · Conclusión</h4>
-      <div class="ph" data-ins="En conclusión, ___. Aunque ___, si todos ___, podremos ___. "><b>En conclusión, <u>___</u>. Aunque <u>___</u>, si todos <u>___</u>, podremos <u>___</u>.</b></div>
     </div>
   </div>
 
@@ -647,36 +498,28 @@ body.open .panel{transform:none}
 <div class="nav">
   <div class="go" id="go">
     <button type="button" data-go="all">Todo</button>
-    <button type="button" data-go="c-task" data-k="cn">Tarea</button>
-    <button type="button" data-go="c-in" data-k="in">1 · Intro</button>
-    <button type="button" data-go="c-pr" data-k="pr">2 · Problema</button>
-    <button type="button" data-go="k-real" data-k="pr">El CO₂ de verdad</button>
-    <button type="button" data-go="c-so" data-k="so">3 · Soluciones</button>
-    <button type="button" data-go="c-co" data-k="co">4 · Conclusión</button>
+    <button type="button" data-go="k-write" data-k="w">Mi texto</button>
+    <button type="button" data-go="info" data-k="pr">El CO₂</button>
+    <button type="button" data-go="k-in" data-k="in">1 · Intro</button>
+    <button type="button" data-go="k-pr" data-k="pr">2 · Problema</button>
+    <button type="button" data-go="k-so" data-k="so">3 · Soluciones</button>
+    <button type="button" data-go="k-co" data-k="co">4 · Conclusión</button>
     <button type="button" data-go="k-fut" data-k="gr">Futuro</button>
     <button type="button" data-go="k-cond" data-k="gr">Condicional</button>
     <button type="button" data-go="k-cn" data-k="cn">Conectores</button>
-    <button type="button" data-go="c-mo">Modelo</button>
+    <button type="button" data-go="k-model">Modelo</button>
   </div>
   <div class="zoom"><button class="btn" id="zo" type="button" aria-label="Alejar">−</button><button class="btn" id="zi" type="button" aria-label="Acercar">+</button></div>
 </div>
 
-<aside class="panel" id="panel" aria-label="Tu artículo">
-  <div class="ph-head"><h2>Tu artículo</h2><button class="btn" id="closeBtn" type="button">Cerrar</button></div>
-  <p class="hint">Toca cualquier frase del mapa y se añade aquí, donde está el cursor. Después cámbiala con tus ideas.</p>
-  <textarea id="draft" lang="es" spellcheck="false" placeholder="Título&#10;&#10;¡Hola a todos y a todas! En este artículo voy a hablar sobre…"></textarea>
-  <div class="foot"><span class="wc" id="wc">0 palabras</span><span class="paras" id="paras"></span><span style="flex:1"></span><button class="btn" id="copyBtn" type="button">Copiar</button></div>
-</aside>
-
-<div class="help" id="help"><p><b>Pellizca</b> para hacer zoom y <b>arrastra</b> para moverte. Toca una tarjeta para acercarla.</p><button class="btn" id="helpOk" type="button">Vale</button></div>
+<div class="help" id="help"><p><b>Pellizca</b> para hacer zoom, <b>arrastra</b> para moverte. <b>Toca una frase</b> y va a tu texto.</p><button class="btn" id="helpOk" type="button">Vale</button></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (function(){
 const view=document.getElementById('view'), board=document.getElementById('board');
-const MIN=0.12, MAX=2.6;
-let s=1, x=0, y=0;            // board scale and offset (screen px)
-let anim=null, settleT=null;
+const MIN=0.1, MAX=2.6;
+let s=1, x=0, y=0, anim=null, settleT=null;
 
 function apply(){
   board.style.transform=`translate(${x}px,${y}px) scale(${s})`;
@@ -685,59 +528,46 @@ function apply(){
   settleT=setTimeout(()=>board.classList.remove('moving'),180); // re-rasterise text crisply at rest
 }
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-function zoomAt(f,cx,cy){
-  const ns=clamp(s*f,MIN,MAX); f=ns/s;
-  x=cx-(cx-x)*f; y=cy-(cy-y)*f; s=ns; apply();
-}
+function zoomAt(f,cx,cy){ const ns=clamp(s*f,MIN,MAX); f=ns/s; x=cx-(cx-x)*f; y=cy-(cy-y)*f; s=ns; apply(); }
 function stopAnim(){ if(anim){cancelAnimationFrame(anim);anim=null;} }
 
-/* insets: top bar and bottom nav cover part of the view */
 function insets(){
   const t=document.querySelector('.top').getBoundingClientRect().bottom;
-  const nav=document.querySelector('.nav');
-  const b=nav.offsetParent===null?0:nav.getBoundingClientRect().height;
+  const b=document.querySelector('.nav').getBoundingClientRect().height;
   return {t:t+16,b:b+16,l:16,r:16};
 }
-/* world rectangle of an element inside the board */
 function worldRect(el){            // layout position, independent of the current zoom
   let x0=0,y0=0,n=el;
   while(n && n!==board){ x0+=n.offsetLeft; y0+=n.offsetTop; n=n.offsetParent; }
   return {x:x0, y:y0, w:el.offsetWidth, h:el.offsetHeight};
 }
-function fitTarget(rect,maxS,topW){
-  const vr=view.getBoundingClientRect(), i=insets();
-  const aw=vr.width-i.l-i.r, ah=vr.height-i.t-i.b;
-  let ns=topW?Math.min(aw/rect.w,maxS||1.25):Math.min(aw/rect.w, ah/rect.h, maxS||1.25);
-  ns=clamp(ns,MIN,MAX);
-  // tall cards: fit width and show the top
-  if(rect.h*ns>ah && aw/rect.w>ns*1.4){ ns=clamp(Math.min(aw/rect.w,maxS||1.25),MIN,MAX); }
-  const nx=i.l+(aw-rect.w*ns)/2-rect.x*ns;
-  const ny=rect.h*ns>ah ? i.t-rect.y*ns : i.t+(ah-rect.h*ns)/2-rect.y*ns;
-  return {s:ns,x:nx,y:ny};
+function fitTarget(r,maxS,topW){
+  const vr=view.getBoundingClientRect(), i=insets(), aw=vr.width-i.l-i.r, ah=vr.height-i.t-i.b;
+  const ns=clamp(topW?Math.min(aw/r.w,maxS):Math.min(aw/r.w,ah/r.h,maxS),MIN,MAX);
+  return {s:ns, x:i.l+(aw-r.w*ns)/2-r.x*ns, y:(r.h*ns>ah ? i.t : i.t+(ah-r.h*ns)/2)-r.y*ns};
 }
 function flyTo(t,ms=650){
   stopAnim();
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches){ms=0;}
-  const s0=s,x0=x,y0=y,t0=performance.now();
-  const ease=k=>1-Math.pow(1-k,3);
-  function step(now){
-    const k=ms?Math.min(1,(now-t0)/ms):1, e=ease(k);
-    // interpolate in log-scale so the zoom feels even
-    s=Math.exp(Math.log(s0)+(Math.log(t.s)-Math.log(s0))*e);
-    x=x0+(t.x-x0)*e; y=y0+(t.y-y0)*e; apply();
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) ms=0;
+  const s0=s,x0=x,y0=y,t0=performance.now(), ease=k=>1-Math.pow(1-k,3);
+  (function step(now){
+    const k=ms?Math.min(1,((now||t0)-t0)/ms):1, e=ease(k);
+    s=Math.exp(Math.log(s0)+(Math.log(t.s)-Math.log(s0))*e); x=x0+(t.x-x0)*e; y=y0+(t.y-y0)*e; apply();
     anim=k<1?requestAnimationFrame(step):null;
-  }
-  anim=requestAnimationFrame(step);
+  })();
 }
-function goAll(ms){ const W=board.offsetWidth, H=board.offsetHeight, vr=view.getBoundingClientRect(), i=insets();
-  const ns=clamp(Math.min((vr.width-i.l-i.r)/W,(vr.height-i.t-i.b)/H),MIN,MAX);
-  flyTo({s:ns,x:i.l+((vr.width-i.l-i.r)-W*ns)/2,y:i.t},ms); }
-function goEl(id,ms){ const el=document.getElementById(id); if(el) { const c=el.classList.contains('col'); flyTo(fitTarget(worldRect(el), c?0.9:1.25, c),ms); } }
+function goAll(ms){ flyTo(fitTarget({x:0,y:0,w:board.offsetWidth,h:board.offsetHeight},1),ms); }
+function goEl(id,ms){
+  if(id==='all') return goAll(ms);
+  const el=document.getElementById(id); if(!el) return;
+  const tall=id==='k-write'||id==='info';
+  flyTo(fitTarget(worldRect(el), id==='k-write'?0.85:1.2, tall), ms);
+}
 
 /* ---- gestures: pan, pinch, wheel, inertia ---- */
 const pts=new Map(); let last=null, moved=0, vel={x:0,y:0}, lastT=0, pinch=null;
 view.addEventListener('pointerdown',e=>{
-  if(e.target.closest('textarea')) return;
+  if(e.target.closest('textarea,button')) return;
   stopAnim();
   view.setPointerCapture(e.pointerId);
   pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -749,16 +579,13 @@ view.addEventListener('pointermove',e=>{
   if(!pts.has(e.pointerId)) return;
   pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pts.size>=2 && pinch){
-    const [a,b]=[...pts.values()];
-    const d=Math.hypot(a.x-b.x,a.y-b.y), cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
+    const [a,b]=[...pts.values()], d=Math.hypot(a.x-b.x,a.y-b.y), cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
     x+=cx-pinch.cx; y+=cy-pinch.cy;
-    const vr=view.getBoundingClientRect();
-    zoomAt(d/pinch.d,cx-vr.left,cy-vr.top);
+    const vr=view.getBoundingClientRect(); zoomAt(d/pinch.d,cx-vr.left,cy-vr.top);
     pinch={d,cx,cy};
   } else if(pts.size===1 && last){
     const dx=e.clientX-last.x, dy=e.clientY-last.y, now=performance.now(), dt=Math.max(1,now-lastT);
-    moved+=Math.abs(dx)+Math.abs(dy);
-    x+=dx; y+=dy; apply();
+    moved+=Math.abs(dx)+Math.abs(dy); x+=dx; y+=dy; apply();
     vel={x:.8*vel.x+.2*dx/dt*16, y:.8*vel.y+.2*dy/dt*16};
     last={x:e.clientX,y:e.clientY}; lastT=now;
   }
@@ -774,74 +601,65 @@ function up(e){
   }
 }
 view.addEventListener('pointerup',up); view.addEventListener('pointercancel',up);
-function glide(){
-  stopAnim();
-  (function step(){
-    vel.x*=.93; vel.y*=.93; x+=vel.x; y+=vel.y; apply();
-    anim=Math.hypot(vel.x,vel.y)>.3?requestAnimationFrame(step):null;
-  })();
-}
+function glide(){ stopAnim(); (function step(){ vel.x*=.93; vel.y*=.93; x+=vel.x; y+=vel.y; apply();
+  anim=Math.hypot(vel.x,vel.y)>.3?requestAnimationFrame(step):null; })(); }
 view.addEventListener('wheel',e=>{
   e.preventDefault(); stopAnim();
   const vr=view.getBoundingClientRect();
-  if(e.ctrlKey||e.metaKey){ zoomAt(Math.exp(-e.deltaY*0.01),e.clientX-vr.left,e.clientY-vr.top); }
+  if(e.ctrlKey||e.metaKey) zoomAt(Math.exp(-e.deltaY*0.01),e.clientX-vr.left,e.clientY-vr.top);
   else { x-=e.deltaX; y-=e.deltaY; apply(); }
 },{passive:false});
-// Safari page-zoom gestures would fight the board
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
-
-function zoomCenter(f){ const vr=view.getBoundingClientRect(); flyTo({s:clamp(s*f,MIN,MAX),
-  x:vr.width/2-(vr.width/2-x)*clamp(s*f,MIN,MAX)/s, y:vr.height/2-(vr.height/2-y)*clamp(s*f,MIN,MAX)/s},300); }
+function zoomCenter(f){ const vr=view.getBoundingClientRect(), ns=clamp(s*f,MIN,MAX);
+  flyTo({s:ns, x:vr.width/2-(vr.width/2-x)*ns/s, y:vr.height/2-(vr.height/2-y)*ns/s},300); }
 document.getElementById('zi').onclick=()=>zoomCenter(1.5);
 document.getElementById('zo').onclick=()=>zoomCenter(1/1.5);
 
-/* ---- taps on the board ---- */
+// the board moves only by transform; never let the browser scroll the container (hash links, focus)
+const unscroll=()=>{ if(view.scrollTop||view.scrollLeft){ view.scrollTop=0; view.scrollLeft=0; } };
+view.addEventListener('scroll',unscroll);
+
+/* ---- taps ---- */
 view.addEventListener('click',e=>{
-  if(moved>8) return;                       // that was a drag, not a tap
-  const go=e.target.closest('[data-go]'); if(go){ goEl(go.dataset.go); return; }
+  if(moved>8) return;                                   // that was a drag
   const ph=e.target.closest('.ph');
-  if(ph && document.body.classList.contains('open')){ insert(ph.dataset.ins||ph.innerText.split('\n')[0]); ph.classList.add('flash'); setTimeout(()=>ph.classList.remove('flash'),350); return; }
+  if(ph){ insert(ph.dataset.ins||ph.textContent.trim()+' '); ph.classList.add('flash'); setTimeout(()=>ph.classList.remove('flash'),400); return; }
   const card=e.target.closest('.card');
-  if(card){ flyTo(fitTarget(worldRect(card),1.25)); }
+  if(card && card.id!=='k-write') flyTo(fitTarget(worldRect(card),1.2));
 });
-document.getElementById('go').addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b) return;
-  b.dataset.go==='all'?goAll():goEl(b.dataset.go);
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.nav [data-go], .top [data-go]'); if(b) goEl(b.dataset.go);
 });
 
-/* ---- writing panel ---- */
-const draft=document.getElementById('draft'), wc=document.getElementById('wc'), paras=document.getElementById('paras');
-const KEY='mapa-co2-draft';
+/* ---- the writing page ---- */
+const draft=document.getElementById('draft'), wc=document.getElementById('wc'), paras=document.getElementById('paras'), undoBtn=document.getElementById('undoBtn');
+const KEY='mapa-co2-draft', WORD=/[A-Za-zÀ-ÿ0-9₂]+(?:['’-][A-Za-zÀ-ÿ]+)*/g;
 try{ draft.value=localStorage.getItem(KEY)||''; }catch(_){}
-function count(){
-  const n=(draft.value.match(/[A-Za-zÀ-ÿ0-9₂]+(?:['’-][A-Za-zÀ-ÿ]+)*/g)||[]).length;
+function grow(){ draft.style.height='auto'; draft.style.height=Math.max(1100,draft.scrollHeight+40)+'px'; }
+function refresh(){
+  const n=(draft.value.match(WORD)||[]).length;
   wc.textContent=n+' palabras'+(n<200?' · faltan '+(200-n):n>250?' · sobran '+(n-250):' ✓');
   wc.className='wc'+(n>=200&&n<=250?' ok':n>250?' over':'');
   const p=draft.value.split(/\n\s*\n/).filter(t=>t.trim()).length;
   paras.textContent=p?p+(p===1?' párrafo':' párrafos'):'';
+  grow();
+  try{localStorage.setItem(KEY,draft.value);}catch(_){}
 }
-draft.addEventListener('input',()=>{ count(); try{localStorage.setItem(KEY,draft.value);}catch(_){} });
-count();
-let caret=null;
+draft.addEventListener('input',refresh);
+let caret=null; const undo=[];
 draft.addEventListener('blur',()=>{ caret=[draft.selectionStart,draft.selectionEnd]; });
 function insert(txt){
   const v=draft.value;
-  let [a,b]=document.activeElement===draft?[draft.selectionStart,draft.selectionEnd]:(caret||[v.length,v.length]);
+  const [a,b]=document.activeElement===draft?[draft.selectionStart,draft.selectionEnd]:(caret||[v.length,v.length]);
   const before=v.slice(0,a), after=v.slice(b);
-  if(before && !/[\s\n]$/.test(before)) txt=' '+txt;
+  if(before && !/\s$/.test(before)) txt=' '+txt;
+  undo.push(v); if(undo.length>30) undo.shift(); undoBtn.disabled=false;
   draft.value=before+txt+after;
   const pos=(before+txt).length; caret=[pos,pos];
-  draft.dispatchEvent(new Event('input'));
-  // keep the iPad keyboard down while she collects phrases; show where it went
-  draft.scrollTop=draft.scrollHeight*(pos/Math.max(1,draft.value.length))-draft.clientHeight/2;
-  toast('Añadido: '+txt.trim());
+  if(document.activeElement===draft) draft.setSelectionRange(pos,pos);
+  refresh(); toast('→ '+txt.trim());
 }
-function setOpen(o){
-  document.body.classList.toggle('open',o);
-  document.getElementById('writeBtn').textContent=o?'Cerrar panel':'✍︎ Escribir';
-}
-document.getElementById('writeBtn').onclick=()=>setOpen(!document.body.classList.contains('open'));
-document.getElementById('closeBtn').onclick=()=>setOpen(false);
+undoBtn.onclick=()=>{ if(!undo.length) return; draft.value=undo.pop(); caret=null; refresh(); undoBtn.disabled=!undo.length; toast('Deshecho'); };
 document.getElementById('copyBtn').onclick=async()=>{
   try{ await navigator.clipboard.writeText(draft.value); toast('Texto copiado'); }
   catch(_){ draft.focus(); draft.select(); toast('Selecciona y copia'); }
@@ -849,25 +667,21 @@ document.getElementById('copyBtn').onclick=async()=>{
 let tt; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1400); }
 
 /* model word count */
-(function(){ const txt=[...document.querySelectorAll('#k-model .mt, #k-model .para p')].map(e=>e.textContent).join(' ');
-  const n=(txt.match(/[A-Za-zÀ-ÿ0-9₂]+(?:['’-][A-Za-zÀ-ÿ]+)*/g)||[]).length;
-  document.getElementById('mWords').textContent=n+' palabras'; })();
+(function(){ const txt=[...document.querySelectorAll('#k-model .mt, #k-model .para')].map(e=>e.textContent).join(' ');
+  document.getElementById('mWords').textContent=(txt.match(WORD)||[]).length+' palabras'; })();
 
 /* help */
 const help=document.getElementById('help');
 try{ if(localStorage.getItem('mapa-help')) help.hidden=true; }catch(_){}
 document.getElementById('helpOk').onclick=()=>{ help.hidden=true; try{localStorage.setItem('mapa-help','1');}catch(_){} };
 
-/* start: whole map, then gently into the task */
-function start(){ const id=location.hash.slice(1); if(id&&document.getElementById(id)) goEl(id,0); else goAll(0); }
-// the board moves only by transform; never let the browser scroll the container (hash links, focus)
-const unscroll=()=>{ if(view.scrollTop||view.scrollLeft){ view.scrollTop=0; view.scrollLeft=0; } };
-view.addEventListener('scroll',unscroll); unscroll();
+/* start on the whole map; re-fit once fonts load unless she has already moved */
+function start(){ unscroll(); refresh(); const id=location.hash.slice(1); if(id&&document.getElementById(id)) goEl(id,0); else goAll(0); }
 let touched=false; view.addEventListener('pointerdown',()=>touched=true,{once:true});
 const again=()=>{ if(!touched) start(); };
 start(); addEventListener('load',again);
 if(document.fonts){ document.fonts.ready.then(again); document.fonts.addEventListener('loadingdone',again); }
-let rz; addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(()=>{ if(!pts.size) goAll(300); },250); });
+let rz; addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(()=>{ if(!pts.size && !touched) goAll(300); },250); });
 })();
 </script>
 </body></html>
