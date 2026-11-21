@@ -142,6 +142,15 @@ ul,ol{margin:0;padding:0;list-style:none}
 #play{width:100%}
 .dh{font-size:24px;font-weight:800;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-top:6px}
 .dh small{font:400 17px/1.3 var(--body);color:var(--muted)}
+/* correction of what she said */
+.fixb{font:800 24px/1 var(--display);border:0;border-radius:999px;padding:18px 28px;cursor:pointer;background:var(--so);color:#fff;justify-self:start;min-height:60px}
+.fixb:disabled{opacity:.6;cursor:default}
+.fixbox{display:grid;gap:14px;border-top:2px dashed var(--line);padding-top:16px}
+.fixtext{font-size:21px;line-height:1.85;background:var(--board);border-radius:12px;padding:16px 20px;white-space:pre-wrap}
+.fixtext s{color:var(--pr);text-decoration-thickness:2px}
+.fixtext ins{text-decoration:none;color:var(--so);font-weight:700;background:var(--so-s);border-radius:5px;padding:0 4px;margin-left:3px}
+.fixl .ok{color:var(--so);font-weight:700}
+.fixl small{display:block;color:var(--muted);font-size:16px;line-height:1.35}
 /* what she left out in class */
 .miss{display:grid;gap:10px}
 .miss .t{font:800 14px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}
@@ -436,6 +445,13 @@ ul,ol{margin:0;padding:0;list-style:none}
       <textarea id="draft" lang="es" spellcheck="false" placeholder="Aquí aparece lo que dices.&#10;&#10;También puedes escribir tu guion: ¡Hola a todos! Hoy voy a hablar de una película que me encanta…"></textarea>
       <div class="wbar"><span class="wc" id="wc">0 palabras</span><span class="paras" id="paras"></span><span style="flex:1"></span>
         <button class="btn" id="undoBtn" type="button" disabled>↶ Deshacer</button><button class="btn" id="clearBtn" type="button">Borrar</button><button class="btn" id="copyBtn" type="button">Copiar</button></div>
+      <button class="fixb" id="fixBtn" type="button">✓ Corregir lo que he dicho</button>
+      <div class="fixbox" id="fixBox" hidden>
+        <h4 class="dh">Corrección <small id="fixSum"></small></h4>
+        <div class="fixtext" id="fixText"></div>
+        <ul class="err fixl" id="fixList"></ul>
+        <div class="wbar"><button class="btn main" id="fixApply" type="button">Aplicar las correcciones</button><button class="btn" id="fixClose" type="button">Cerrar</button></div>
+      </div>
       <p class="note">Hablando despacio, unas 75 palabras son 1 minuto. Con 600–750 palabras y las preguntas del final, llegas a 10 minutos.</p>
     </div>
 
@@ -863,11 +879,124 @@ function stopRec(){
   recBtn.classList.remove('on'); recBtn.textContent='🎤 Grabar otra vez';
   chips.forEach(c=>c.classList.remove('now'));
   setTimeout(()=>{ const wpm=sec>5?Math.round(takeWords/(sec/60)):0;
-    recSt.textContent='Has hablado '+fmt(sec)+(SR?' · '+takeWords+' palabras · '+wpm+' palabras por minuto':'')+(sec<GOAL?' · faltan '+fmt(GOAL-sec)+' para 10 min':' · ¡10 minutos! ✓');
+    recSt.textContent='Has hablado '+fmt(sec)+(SR?' · '+takeWords+' palabras · '+wpm+' palabras por minuto':'')+(sec<GOAL?' · faltan '+fmt(GOAL-sec)+' para 10 min':' · ¡10 minutos! ✓')+(takeWords?' · pulsa ✓ Corregir':'');
   },600);
 }
 recBtn.onclick=()=>{ recOn?stopRec():startRec(); };
 document.getElementById('clearBtn').onclick=()=>{ if(!draft.value) return; undo.push(draft.value); undoBtn.disabled=false; draft.value=''; caret=null; refresh(); toast('Borrado · ↶ para recuperarlo'); };
+
+/* ---- correct what she said ----
+   1. Her own typical mistakes (from the 20 nov class) and what speech-to-text keeps: fixed rules, offline.
+   2. LanguageTool's free public API for general grammar (agreement, accents). Needs internet; the text goes
+      to api.languagetool.org. If it fails, the rules alone still run. Her rules win where both overlap. */
+const FEM='película|animación|historia|canción|familia|fiesta|ciudad|guitarra|tumba|foto|calavera|ofrenda|bendición|música|tradición|muerte';
+const PERS='abuelo|abuela|tatarabuelo|tatarabuela|bisabuelo|bisabuela|familia|padre|madre|perro|hermano|hermana|padres';
+const P3={quiero:'quiere',tengo:'tiene',puedo:'puede',voy:'va',soy:'es',estoy:'está',vivo:'vive',pienso:'piensa',busco:'busca'};
+const RULES=[
+  [/\b(es|era) (?:un|una) animación\b/gi, (m,a)=>a+' una película de animación', 'Una animación no: una película de animación'],
+  [new RegExp('\\bun ('+FEM+')\\b','gi'), (m,a)=>'una '+a, 'Es femenina: una'],
+  [new RegExp('\\bel ('+FEM+')\\b','gi'), (m,a)=>'la '+a, 'Es femenina: la'],
+  [new RegExp('\\b((?:la|una|esta) (?:'+FEM+')) es (muy |tan |un poco |bastante )?(bonit|precios|divertid|famos|tranquil|pequeñ|buen|maravillos|perfect|bellísim|preciós)o\\b','gi'),
+     (m,a,b,c)=>a+' es '+(b||'')+c+'a', 'Concordancia: femenino → -a'],
+  [/\bno le gusta (?:el |la )?músicos?\b/gi, 'no le gusta la música', 'músico = la persona · la música = la cosa'],
+  [/\bser (?:un )?música\b/gi, 'ser músico', 'Quiere ser músico (la persona)'],
+  [/\bfue a(l)?\b/gi, (m,a)=>'va a'+(a||''), 'Para contar una película: presente (va, no fue)'],
+  [/\bfueron a(l)?\b/gi, (m,a)=>'van a'+(a||''), 'Para contar una película: presente'],
+  [/\bmundo de muertos\b/gi, 'mundo de los muertos', 'el mundo de los muertos'],
+  [/\btrata de habla de\b/gi, 'trata de', 'Una de las dos: trata de… o habla de…'],
+  [/\b(Miguel|Héctor|él|el|ella) no (quiero|tengo|puedo|voy|soy|estoy|vivo|pienso|busco)\b/gi,
+     (m,a,b)=>(a.toLowerCase()==='el'?(a[0]==='E'?'Él':'él'):a)+' no '+P3[b.toLowerCase()], 'Él / Miguel → quiere, tiene, puede…'],
+  [/\b(Miguel|Héctor|él|ella) (quiero|tengo|puedo|voy|soy|estoy|vivo|pienso|busco)\b/gi,
+     (m,a,b)=>a+' '+P3[b.toLowerCase()], 'Él / Miguel → quiere, tiene, puede…'],
+  [new RegExp('\\b(buscar|busca|conoce|conocer|encuentra|encontrar|ayuda|ayudar|visita|visitar|ve|ver) (su|sus) ('+PERS+')\\b','gi'),
+     (m,a,b,c)=>a+' a '+b+' '+(c.toLowerCase()==='abuelo'?'tatarabuelo':c), 'Persona después del verbo: a + persona'],
+  [/\b(buscar|busca|conoce|conocer|encuentra|encontrar|ayuda|ayudar) (Héctor|Miguel|Mamá Coco|Imelda|Ernesto|Dante)\b/g,
+     (m,a,b)=>a+' a '+b, 'Persona después del verbo: a + persona'],
+  [/\b(no )?(está|es) basado\b/gi, (m,a,b)=>(a||'')+'está basada', 'La película está basada (femenino, con estar)'],
+  [/\b(?:el|es) ambientada\b/gi, 'está ambientada', 'Está ambientada en… (con estar)'],
+  [/\besto no (?:está )?basad[oa]\b/gi, 'no está basada', 'No está basada en un libro'],
+  [/\b(su|el) abuelo\b/gi, (m,a)=>a+' tatarabuelo', 'En Coco es su tatarabuelo (el padre de la bisabuela)'],
+  [/\bpiense que\b/gi, 'piensa que', 'Miguel piensa que…'],
+  [/\bmás buen[oa]s?\b/gi, 'mejor', 'más bueno → mejor']
+];
+// JS \b ignores accented letters (él, música): use Unicode letter boundaries instead
+for(const r of RULES){ const re=r[0];
+  r[0]=new RegExp(re.source.replace(/^\\b/,'(?<![\\p{L}\\p{N}])').replace(/\\b$/,'(?![\\p{L}\\p{N}])'), re.flags.replace('u','')+'u'); }
+const fixBtn=document.getElementById('fixBtn'), fixBox=document.getElementById('fixBox'), fixText=document.getElementById('fixText'),
+      fixList=document.getElementById('fixList'), fixSum=document.getElementById('fixSum');
+let fixes=[], fixSrc='';
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function keepCase(orig,rep){ return /^[A-ZÁÉÍÓÚÑ]/.test(orig) ? rep.charAt(0).toUpperCase()+rep.slice(1) : rep; }
+function ruleFixes(t){
+  const out=[];
+  for(const [re,rep,why] of RULES){ re.lastIndex=0; let m;
+    while((m=re.exec(t))){ const r=typeof rep==='function'?rep(...m):rep; if(r!==m[0]) out.push({o:m.index,l:m[0].length,from:m[0],to:keepCase(m[0],r),why,mine:true}); }
+  }
+  return out;
+}
+async function ltFixes(t){
+  const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),15000);
+  try{
+    const body=new URLSearchParams({text:t,language:'es',disabledCategories:'TYPOGRAPHY,STYLE',disabledRules:'WHITESPACE_RULE,UPPERCASE_SENTENCE_START'});
+    const r=await fetch('https://api.languagetool.org/v2/check',{method:'POST',body,signal:ctl.signal});
+    if(!r.ok) return null;
+    const d=await r.json();
+    return d.matches.filter(m=>m.replacements.length).map(m=>{ const from=t.substr(m.offset,m.length);
+      return {o:m.offset,l:m.length,from,to:m.replacements[0].value,why:m.shortMessage||m.message.replace(/^Posible error de /,'Error de '),
+              skip: m.rule.category.id==='TYPOS' && /^[A-ZÁÉÍÓÚÑ]/.test(from)}; })   // names (Imelda, Unkrich) are not typos
+      .filter(f=>!f.skip && f.to!==f.from);
+  }catch(_){ return null; } finally{ clearTimeout(to); }
+}
+/* Claude, through the Supabase function ../supabase/functions/corregir: tenses, articles, ser/estar,
+   personal a, subjunctive… everything rules can't judge. Empty URL = not deployed yet. */
+const FN_URL='';
+async function aiFixes(t){
+  if(!FN_URL) return null;
+  const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),60000);
+  try{
+    const r=await fetch(FN_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:t}),signal:ctl.signal});
+    if(!r.ok){ console.warn('corregir: HTTP',r.status); return null; }
+    const d=await r.json(); if(!Array.isArray(d.corrections)) return null;
+    const out=[]; let from=0;                    // place each piece in order; fall back to the first occurrence
+    for(const c of d.corrections){
+      if(typeof c.from!=='string'||typeof c.to!=='string') continue;
+      let o=t.indexOf(c.from,from); if(o<0) o=t.indexOf(c.from); if(o<0) continue;
+      out.push({o,l:c.from.length,from:c.from,to:c.to,why:String(c.why||''),ai:true}); from=o+c.from.length;
+    }
+    return out;
+  }catch(e){ console.warn('corregir: failed',e); return null; } finally{ clearTimeout(to); }
+}
+function merge(list){
+  const rank=f=>f.ai?2:f.mine?1:0;              // Claude first, then her rules, then LanguageTool
+  list.sort((a,b)=>rank(b)-rank(a)||a.o-b.o);
+  const kept=[]; for(const f of list){ if(!kept.some(k=>f.o<k.o+k.l && k.o<f.o+f.l)) kept.push(f); }
+  return kept.sort((a,b)=>a.o-b.o);
+}
+function showFixes(t,online,full){
+  let h='', p=0;
+  for(const f of fixes){ h+=esc(t.slice(p,f.o))+'<s>'+esc(f.from)+'</s><ins>'+esc(f.to)+'</ins>'; p=f.o+f.l; }
+  fixText.innerHTML=h+esc(t.slice(p));
+  fixList.innerHTML=fixes.map(f=>'<li><s>'+esc(f.from)+'</s><span><span class="ok">'+esc(f.to)+'</span><small>'+esc(f.why)+'</small></span></li>').join('');
+  fixSum.textContent=(fixes.length?fixes.length+(fixes.length===1?' corrección':' correcciones'):'¡Sin errores! ✓')+(full?'':online?' · corrección básica (sin tiempos verbales)':' · sin internet: solo tus errores típicos');
+  document.getElementById('fixApply').hidden=!fixes.length;
+  fixBox.hidden=false;
+}
+fixBtn.onclick=async()=>{
+  const t=draft.value; if(!t.trim()){ toast('Primero graba o escribe algo'); return; }
+  fixBtn.disabled=true; fixBtn.textContent='Corrigiendo…';
+  const ai=await aiFixes(t);
+  const lt=ai?[]:await ltFixes(t);                // the grammar checker only when Claude can't be reached
+  fixSrc=t; fixes=merge([...(ai||[]),...ruleFixes(t),...(lt||[])]);
+  showFixes(t,!!(ai||lt),!!ai);
+  fixBtn.disabled=false; fixBtn.textContent='✓ Corregir otra vez';
+};
+document.getElementById('fixApply').onclick=()=>{
+  if(draft.value!==fixSrc){ toast('Has cambiado el texto: corrige otra vez'); return; }
+  undo.push(draft.value); undoBtn.disabled=false;
+  let t=draft.value; for(const f of [...fixes].reverse()) t=t.slice(0,f.o)+f.to+t.slice(f.o+f.l);
+  draft.value=t; caret=null; refresh(); fixBox.hidden=true; toast('Corregido · ↶ para volver');
+};
+document.getElementById('fixClose').onclick=()=>{ fixBox.hidden=true; };
 
 let tt; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1400); }
 
