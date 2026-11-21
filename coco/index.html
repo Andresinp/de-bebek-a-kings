@@ -1,0 +1,894 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>El mapa de Coco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Same engine as ../mapa/. Speaking task: present the film Coco (Aula Internacional Plus 3, unidad 4).
+   One pastel colour per part of the talk, in the order Eda used in class on 2026-11-20:
+   intro = blue, ¿de qué va? = rose, ambientación = mint, personajes = lavender, la historia = magenta,
+   opinión = teal, gramática = butter, conectores = peach */
+:root{
+  --board:#e3e8ed; --dots:#c9d1d9; --surface:#ffffff; --ink:#17212b; --muted:#55636f; --line:#d3dbe2;
+  --in:#2b5a9e; --in-s:#dce8fa;
+  --pr:#a43a2d; --pr-s:#fbe0db;
+  --so:#22744a; --so-s:#d8efe1;
+  --co:#5a44a6; --co-s:#e7e0f9;
+  --hi:#9b2f72; --hi-s:#f8dcec;
+  --op:#0e6c78; --op-s:#d3eef1;
+  --gr:#835c00; --gr-s:#fbf0cb;
+  --cn:#a0501a; --cn-s:#fde3cf;
+  --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+}
+/* Always light: brighter for studying, whatever the device setting. */
+:root{color-scheme:light}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden;margin:0}
+body{background:var(--board);color:var(--ink);font-family:var(--body);-webkit-text-size-adjust:100%;overscroll-behavior:none}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+
+/* ---------- bars ---------- */
+.top{position:fixed;left:0;right:0;top:0;z-index:20;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;
+  display:flex;gap:10px;align-items:center;background:color-mix(in srgb,var(--board) 96%,transparent);
+  border-bottom:1px solid var(--line)}
+.top a.back{color:var(--muted);text-decoration:none;font-size:.9rem;white-space:nowrap}
+.top .ttl{font-family:var(--display);font-weight:800;font-size:1.1rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap;min-height:40px}
+.btn.main{background:var(--ink);color:var(--surface);border-color:var(--ink);font-weight:700}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible{outline:2px solid var(--in);outline-offset:2px}
+.nav{position:fixed;left:0;bottom:0;z-index:20;right:0;padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 8px);
+  display:flex;gap:8px;align-items:center;background:color-mix(in srgb,var(--board) 96%,transparent);
+  border-top:1px solid var(--line)}
+.nav .go{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.nav .go::-webkit-scrollbar{display:none}
+.nav .go button{font:inherit;font-size:.9rem;border:0;border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap;color:var(--ink);background:var(--surface);min-height:40px}
+.nav .go button[data-k="in"]{background:var(--in-s)} .nav .go button[data-k="pr"]{background:var(--pr-s)}
+.nav .go button[data-k="so"]{background:var(--so-s)} .nav .go button[data-k="co"]{background:var(--co-s)}
+.nav .go button[data-k="hi"]{background:var(--hi-s)} .nav .go button[data-k="op"]{background:var(--op-s)}
+.nav .go button[data-k="cn"]{background:var(--cn-s)} .nav .go button[data-k="gr"]{background:var(--gr-s)}
+.nav .go button[data-k="w"]{background:var(--ink);color:var(--surface);font-weight:700}
+.zoom{display:flex;gap:4px}
+.zoom .btn{width:40px;padding:0;font-size:1.2rem;font-weight:700}
+@media (max-width:520px){.top .ttl{visibility:hidden}}
+
+/* ---------- board ---------- */
+#view{position:fixed;inset:0;overflow:hidden;touch-action:none;cursor:grab;
+  background-color:var(--board);background-image:radial-gradient(var(--dots) 1.4px,transparent 1.6px);background-size:28px 28px}
+#view.grabbing{cursor:grabbing}
+#board{position:absolute;left:0;top:0;transform-origin:0 0;display:grid;padding:80px;
+  grid-template-columns:740px 1040px 740px;gap:90px 110px;align-items:start;font-size:21px;line-height:1.5}
+#board.moving{will-change:transform}
+.col{display:grid;gap:40px;align-content:start}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px 28px;display:grid;gap:14px;align-content:start;
+  box-shadow:0 1px 0 rgba(0,0,0,.03),0 8px 24px -14px rgba(20,33,43,.25);cursor:zoom-in}
+.card > h3{font-size:32px;font-weight:800;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.card > h3 small{font:400 18px/1.3 var(--body);color:var(--muted)}
+.kick{font:800 15px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sec{display:grid;gap:4px}
+.sec .kick{margin-bottom:2px}
+.sec h2{font-size:52px;font-weight:800;letter-spacing:-.02em}
+.in .sec .kick,.in h2{color:var(--in)} .pr .sec .kick,.pr h2{color:var(--pr)}
+.so .sec .kick,.so h2{color:var(--so)} .co .sec .kick,.co h2{color:var(--co)}
+.hi .sec .kick,.hi h2{color:var(--hi)} .op .sec .kick,.op h2{color:var(--op)}
+.in{border-top:8px solid var(--in)} .pr{border-top:8px solid var(--pr)} .so{border-top:8px solid var(--so)} .co{border-top:8px solid var(--co)}
+.hi{border-top:8px solid var(--hi)} .op{border-top:8px solid var(--op)}
+.gr{background:var(--gr-s);border-color:transparent}
+.cn{background:var(--cn-s);border-color:transparent}
+
+/* plain tappable list */
+.ls{display:grid;gap:2px}
+.ls .ph{position:relative;padding:6px 10px 6px 30px;border-radius:10px;font-weight:700;font-size:23px;line-height:1.35;cursor:pointer}
+.ls .ph::before{content:"";position:absolute;left:10px;top:.72em;width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.55}
+.in .ls .ph{color:var(--in)} .pr .ls .ph{color:var(--pr)} .so .ls .ph{color:var(--so)} .co .ls .ph{color:var(--co)}
+.hi .ls .ph{color:var(--hi)} .op .ls .ph{color:var(--op)}
+.ph:hover{background:color-mix(in srgb,currentColor 8%,transparent)}
+.ph.flash{background:color-mix(in srgb,var(--so) 22%,transparent)}
+.ls .ph i{font-style:normal;font-weight:400;color:var(--muted);font-size:18px}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--surface);border-radius:999px;padding:5px 14px;font-size:19px;cursor:pointer;border:1px solid var(--line)}
+.gr .chip,.cn .chip{border-color:transparent}
+.chip b{font-weight:700}
+.chip i{font-style:normal;color:var(--muted);font-size:16px;margin-left:4px}
+.cn .chip b{color:var(--cn)}
+.end{color:var(--gr);font-weight:800}
+.formula{font-family:var(--display);font-size:26px;font-weight:800;line-height:1.3}
+.formula .p{color:var(--in)} .formula .f{color:var(--gr)}
+.note{font-size:18px;color:var(--muted)}
+.grow2{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline;font-size:20px}
+.grow2 b{font-family:var(--display);font-size:22px;color:var(--gr)}
+
+/* ---------- speaking page (centre) ---------- */
+#k-write{cursor:auto;padding:34px 40px;gap:16px;border:2px solid var(--ink);box-shadow:0 20px 60px -30px rgba(20,33,43,.5)}
+#k-write h2{font-size:48px;font-weight:800}
+.parts{display:flex;flex-wrap:wrap;gap:8px}
+.parts span{border-radius:999px;padding:4px 14px;font-size:18px;font-weight:700}
+.parts .pa{background:var(--in-s);color:var(--in)} .parts .pb{background:var(--pr-s);color:var(--pr)}
+.parts .pc{background:var(--so-s);color:var(--so)} .parts .pd{background:var(--co-s);color:var(--co)}
+.parts .pe{background:var(--hi-s);color:var(--hi)} .parts .pf{background:var(--op-s);color:var(--op)}
+#draft{width:100%;min-height:700px;font:22px/1.75 var(--body);color:var(--ink);border:0;border-radius:12px;padding:20px 24px;resize:none;overflow:hidden;
+  background:repeating-linear-gradient(to bottom,transparent 0 calc(1.75em - 1px),var(--line) calc(1.75em - 1px) 1.75em) var(--board);
+  background-attachment:local;background-position:0 20px}
+#draft:focus-visible{outline:3px solid var(--in);outline-offset:2px}
+.wbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.wc{font-variant-numeric:tabular-nums;font-weight:700;padding:6px 14px;border-radius:999px;font-size:19px;background:var(--board)}
+.wc.ok{background:var(--so-s);color:var(--so)} .wc.over{background:var(--pr-s);color:var(--pr)}
+.paras{font-size:18px;color:var(--muted)}
+#k-write .btn{font-size:18px}
+.parts span.now{outline:3px solid currentColor;outline-offset:2px}
+.rec{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.recb{font:800 28px/1 var(--display);border:0;border-radius:999px;padding:22px 36px;cursor:pointer;background:var(--pr);color:#fff;min-height:72px;
+  box-shadow:0 10px 24px -12px var(--pr)}
+.recb.on{background:var(--ink);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 14px color-mix(in srgb,var(--pr) 25%,transparent)}}
+@media (prefers-reduced-motion: reduce){.recb.on{animation:none}}
+.clk{font:800 64px/1 var(--display);font-variant-numeric:tabular-nums;display:flex;gap:10px;align-items:baseline}
+.clk .of{font-size:26px;color:var(--muted)}
+.clk.over #clock{color:var(--so)}
+.plan{display:flex;gap:3px;height:12px}
+.plan i{border-radius:4px}
+.plan .pa{background:var(--in)} .plan .pb{background:var(--pr)} .plan .pc{background:var(--so)} .plan .pd{background:var(--co)} .plan .pe{background:var(--hi)} .plan .pf{background:var(--op)}
+.prog{height:16px;border-radius:999px;background:var(--board);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--ink);border-radius:999px}
+.live{min-height:1.5em;color:var(--muted);font-style:italic}
+#play{width:100%}
+.dh{font-size:24px;font-weight:800;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-top:6px}
+.dh small{font:400 17px/1.3 var(--body);color:var(--muted)}
+/* what she left out in class */
+.miss{display:grid;gap:10px}
+.miss .t{font:800 14px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}
+.miss .said{display:flex;flex-wrap:wrap;gap:6px}
+.miss .said span{background:var(--so-s);color:var(--so);border-radius:999px;padding:3px 12px;font-size:17px;font-weight:700}
+.miss .ls .ph{color:var(--hi);font-size:20px}
+
+/* ---------- info band (top) ---------- */
+#info{grid-column:1/-1;display:grid;grid-template-columns:.8fr .95fr .95fr 1.35fr 1.25fr;gap:40px;align-items:start}
+.band-h{grid-column:1/-1;display:flex;align-items:baseline;gap:20px;flex-wrap:wrap}
+.band-h h2{font-size:64px;font-weight:800;letter-spacing:-.02em}
+.band-h p{font-size:24px;color:var(--muted)}
+.fic{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:19px;align-items:baseline}
+.fic dt{font:800 14px/1.2 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fic dd{margin:0;font-weight:700}
+.big{font-family:var(--display);font-size:28px;font-weight:800;line-height:1.2}
+.big em{font-style:normal;color:var(--hi)}
+.dia{display:grid;gap:10px}
+.dia > div{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;font-size:19px}
+.dia .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#fde3cf}
+.tree{display:grid;gap:0;justify-items:center;text-align:center}
+.tree .gen{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center;width:100%}
+.tree .lab{font:800 14px/1.15 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right}
+.tree .ppl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.tree .p{background:var(--co-s);color:var(--co);border-radius:12px;padding:6px 12px;font-weight:700;font-size:19px}
+.tree .p.me{background:var(--co);color:#fff}
+.tree .p.dead{background:var(--board);color:var(--ink)}
+.tree .ar{color:var(--co);font:800 22px/1 var(--display);padding-left:162px;justify-self:start}
+.others{display:grid;gap:6px;font-size:19px;border-top:1px solid var(--line);padding-top:12px}
+.others b{font-family:var(--display)}
+.arc{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.arc > div{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;font-size:19px;background:var(--board);border-radius:14px;padding:12px}
+.arc .dot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:800 20px/1 var(--display);color:#fff;background:var(--hi)}
+.arc b{font-family:var(--display);font-size:21px}
+
+/* my mistakes from class */
+.err{display:grid;gap:8px}
+.err li{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:19px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:8px}
+.err li:last-child{border-bottom:0}
+.err s{color:var(--muted);text-decoration-thickness:2px}
+.err .ph{font-weight:700;color:var(--so);border-radius:8px;padding:2px 6px;cursor:pointer}
+
+/* model */
+.para{padding:10px 14px;border-radius:12px;border-left:6px solid;font-size:19px;line-height:1.6}
+.para.p1{border-color:var(--in);background:var(--in-s)} .para.p2{border-color:var(--pr);background:var(--pr-s)}
+.para.p3{border-color:var(--so);background:var(--so-s)} .para.p4{border-color:var(--co);background:var(--co-s)}
+.para.p5{border-color:var(--hi);background:var(--hi-s)} .para.p6{border-color:var(--op);background:var(--op-s)}
+.mt{font-family:var(--display);font-size:28px;font-weight:800}
+.st{font-weight:700}
+.c{color:var(--cn);font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.vp{color:var(--gr);font-weight:700}
+.pn{color:var(--in);font-weight:800;background:color-mix(in srgb,var(--in) 12%,transparent);border-radius:4px;padding:0 3px}
+.mkey{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;color:var(--muted)}
+.mold .ph{padding:6px 10px;border-radius:10px;font-size:19px;cursor:pointer}
+.mold .ph u{text-decoration:none;color:var(--muted)}
+.mold h4{font:800 14px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+.checks{display:grid;gap:4px}
+.checks li{position:relative;padding-left:32px;font-size:19px}
+.checks li::before{content:"☐";position:absolute;left:0;top:-3px;font-size:23px;color:var(--op)}
+.qs .ph{color:var(--ink)}
+
+/* toast + help */
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translate(-50%,-10px);z-index:40;background:var(--ink);color:var(--surface);
+  padding:8px 16px;border-radius:999px;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.help{position:fixed;z-index:25;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);transform:translateX(-50%);background:var(--surface);border:1px solid var(--line);
+  border-radius:16px;padding:12px 16px;display:flex;gap:12px;align-items:center;font-size:.95rem;box-shadow:0 10px 30px -16px rgba(0,0,0,.4);width:min(600px,calc(100vw - 32px))}
+.help p{flex:1;line-height:1.4}
+.two{position:fixed;inset:0;z-index:15;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:color-mix(in srgb,var(--ink) 38%,transparent)}
+.two.on{opacity:1}
+.two p{background:var(--surface);color:var(--ink);border-radius:18px;padding:16px 22px;font:700 1.15rem/1.3 var(--body);display:flex;gap:12px;align-items:center;
+  box-shadow:0 12px 40px -16px rgba(0,0,0,.5);max-width:calc(100vw - 32px)}
+.two p span{font-size:1.8rem}
+@media (prefers-reduced-motion: reduce){.toast,.two{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="../">← De Bebek a King's</a>
+  <span class="ttl">El mapa de Coco · mi presentación</span>
+  <button class="btn main" data-go="k-write" type="button">🎤 Mi presentación</button>
+</div>
+
+<div id="view" aria-label="Mapa: arrastra para moverte, pellizca para hacer zoom">
+<div id="board">
+
+  <!-- ================= TOP BAND · the film ================= -->
+  <div id="info">
+    <div class="band-h"><h2>Coco en un minuto</h2><p>Lo que necesitas saber antes de hablar.</p></div>
+
+    <div class="card" id="k-ficha">
+      <h3>La ficha</h3>
+      <dl class="fic">
+        <dt>Título</dt><dd>Coco</dd>
+        <dt>Año</dt><dd>2017</dd>
+        <dt>Estudio</dt><dd>Pixar · Disney</dd>
+        <dt>Dirección</dt><dd>Lee Unkrich y Adrián Molina</dd>
+        <dt>Género</dt><dd>animación · aventuras · musical</dd>
+        <dt>Premios</dt><dd>2 Óscar: película de animación y canción («Recuérdame»)</dd>
+        <dt>Basada en</dt><dd>no es un libro: una tradición real de México</dd>
+      </dl>
+    </div>
+
+    <div class="card" id="k-dia">
+      <h3>El Día de Muertos</h3>
+      <p class="big">1 y 2 de <em>noviembre</em>, en México</p>
+      <div class="dia">
+        <div><span class="ic">🕯️</span><span>Las familias ponen una <b>ofrenda</b>: un altar con fotos de sus muertos.</span></div>
+        <div><span class="ic">🌼</span><span>Flores naranjas (<b>cempasúchil</b>), velas, comida y pan de muerto.</span></div>
+        <div><span class="ic">💀</span><span>Calaveras de colores: la muerte no es triste, es una fiesta.</span></div>
+        <div><span class="ic">🌉</span><span>Esa noche los muertos <b>visitan</b> a su familia… si tienen su foto en la ofrenda.</span></div>
+      </div>
+      <p class="note">En la película: si nadie te recuerda, desapareces para siempre.</p>
+    </div>
+
+    <div class="card" id="k-tree">
+      <h3>La familia de Miguel</h3>
+      <div class="tree">
+        <div class="gen"><span class="lab">tatarabuelos</span><div class="ppl"><span class="p dead">Mamá Imelda</span><span class="p dead">Héctor</span></div></div>
+        <span class="ar">↓</span>
+        <div class="gen"><span class="lab">bisabuela</span><div class="ppl"><span class="p">Mamá Coco</span></div></div>
+        <span class="ar">↓</span>
+        <div class="gen"><span class="lab">abuela</span><div class="ppl"><span class="p">Abuelita Elena</span></div></div>
+        <span class="ar">↓</span>
+        <div class="gen"><span class="lab">padres</span><div class="ppl"><span class="p">papá Enrique</span><span class="p">mamá Luisa</span></div></div>
+        <span class="ar">↓</span>
+        <div class="gen"><span class="lab">protagonista</span><div class="ppl"><span class="p me">Miguel · 12 años</span></div></div>
+      </div>
+      <div class="others">
+        <span><b>Ernesto de la Cruz</b> · el músico más famoso de México</span>
+        <span><b>Dante</b> · el perro de Miguel</span>
+        <span class="note">gris = en el mundo de los muertos</span>
+      </div>
+    </div>
+
+    <div class="card" id="k-arc">
+      <h3>La historia en 6 pasos</h3>
+      <div class="arc">
+        <div><span class="dot">1</span><span><b>El sueño</b><br>Miguel quiere ser músico. En su casa la música está prohibida.</span></div>
+        <div><span class="dot">2</span><span><b>La guitarra</b><br>Coge la guitarra de Ernesto de la Cruz y va al mundo de los muertos.</span></div>
+        <div><span class="dot">3</span><span><b>La bendición</b><br>Para volver, necesita la bendición de un familiar antes del amanecer.</span></div>
+        <div><span class="dot">4</span><span><b>Héctor</b><br>Un esqueleto que lo ayuda. Nadie lo recuerda: va a desaparecer.</span></div>
+        <div><span class="dot">5</span><span><b>La verdad</b><br>De la Cruz es un mentiroso. ¡Héctor es su tatarabuelo!</span></div>
+        <div><span class="dot">6</span><span><b>«Recuérdame»</b><br>Miguel le canta a Mamá Coco. Ella recuerda. La música vuelve.</span></div>
+      </div>
+    </div>
+
+    <div class="card" id="k-miss">
+      <h3>Lo que no contaste <small>clase del 20 nov</small></h3>
+      <div class="miss">
+        <span class="t" style="color:var(--so)">Ya lo dijiste ✓</span>
+        <div class="said"><span>Miguel</span><span>México</span><span>Día de Muertos</span><span>el mundo de los muertos</span><span>quiere ser músico</span><span>a su familia no le gusta</span><span>busca a su abuelo</span><span>familia grande</span><span>la animación</span></div>
+        <span class="t" style="color:var(--hi)">Te falta: toca y añádelo</span>
+        <ul class="ls">
+          <li class="ph" data-ins="Coco no es Miguel: Coco es su bisabuela, Mamá Coco. ">Coco no es Miguel: es su bisabuela</li>
+          <li class="ph" data-ins="La música está prohibida porque el tatarabuelo de Miguel se fue de casa para ser músico y nunca volvió. ">Por qué la música está prohibida</li>
+          <li class="ph" data-ins="Toda la familia hace zapatos. ">La familia hace zapatos</li>
+          <li class="ph" data-ins="Miguel coge la guitarra de Ernesto de la Cruz en su tumba y, cuando la toca, va al mundo de los muertos. ">Cómo llega: la guitarra de la tumba</li>
+          <li class="ph" data-ins="Para volver, necesita la bendición de un familiar antes del amanecer. ">La bendición antes del amanecer</li>
+          <li class="ph" data-ins="Miguel conoce a Héctor, un esqueleto que lo ayuda. ">Héctor, el esqueleto que lo ayuda</li>
+          <li class="ph" data-ins="Si nadie te recuerda en el mundo de los vivos, desapareces para siempre. ">Si nadie te recuerda, desapareces</li>
+          <li class="ph" data-ins="Miguel descubre que Ernesto de la Cruz es un mentiroso y que Héctor es su verdadero tatarabuelo. ">La sorpresa: Héctor es su tatarabuelo</li>
+          <li class="ph" data-ins="Al final, Miguel le canta «Recuérdame» a Mamá Coco y ella recuerda a su padre. ">El final: «Recuérdame»</li>
+          <li class="ph" data-ins="Su perro, Dante, lo acompaña en el viaje. ">Dante, el perro</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LEFT · parts 1–3 ================= -->
+  <div class="col" id="c-left">
+    <div class="card in" id="k-in">
+      <div class="sec"><span class="kick">Parte 1 · ~1 min</span><h2>Introducción</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="¡Hola a todos! ">¡Hola a todos!</li>
+        <li class="ph" data-ins="Hoy voy a hablar de una película que me encanta. ">Hoy voy a hablar de una película que me encanta.</li>
+        <li class="ph" data-ins="Se llama Coco. ">Se llama…</li>
+        <li class="ph" data-ins="Es una película de animación de Pixar, de 2017. ">Es una película de animación de…, de…</li>
+        <li class="ph" data-ins="¿Alguien ha visto Coco? ">¿Alguien ha visto…?</li>
+        <li class="ph" data-ins="Elegí esta película porque ">Elegí esta película porque…</li>
+        <li class="ph" data-ins="Ganó dos premios Óscar. ">Ganó dos premios Óscar.</li>
+      </ul>
+    </div>
+
+    <div class="card pr" id="k-tema">
+      <div class="sec"><span class="kick">Parte 2 · ~1,5 min</span><h2>¿De qué va?</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="La película trata de un niño que se llama Miguel. ">La película trata de / va de un niño que se llama…</li>
+        <li class="ph" data-ins="Vive en un pueblo de México con su familia. ">Vive en… con…</li>
+        <li class="ph" data-ins="La historia pasa en el Día de Muertos. ">La historia pasa en…</li>
+        <li class="ph" data-ins="Es una fiesta muy importante en México. ">Es una fiesta muy importante en…</li>
+        <li class="ph" data-ins="La película narra el viaje de Miguel al mundo de los muertos. ">La película narra / cuenta el viaje de…</li>
+        <li class="ph" data-ins="El tema principal es la familia. ">El tema principal es…</li>
+      </ul>
+    </div>
+
+    <div class="card so" id="k-amb">
+      <div class="sec"><span class="kick">Parte 3 · ~1 min</span><h2>¿Dónde?</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="La película está ambientada en México y en el mundo de los muertos. ">La película está ambientada en…</li>
+        <li class="ph" data-ins="Miguel vive en un pueblo pequeño que se llama Santa Cecilia. ">Miguel vive en un pueblo que se llama…</li>
+        <li class="ph" data-ins="En cambio, el mundo de los muertos es una ciudad enorme. ">En cambio, el mundo de los muertos es…</li>
+        <li class="ph" data-ins="Hay muchas luces y muchos colores. ">Hay muchas luces y muchos colores.</li>
+        <li class="ph" data-ins="Para llegar allí, hay un puente de pétalos naranjas. ">Para llegar allí, hay un puente de…</li>
+        <li class="ph" data-ins="Es mi parte favorita porque ">Es mi parte favorita porque…</li>
+      </ul>
+    </div>
+
+    <div class="card gr" id="k-pres">
+      <h3>Contar en presente <small>Aula 3 · unidad 4</small></h3>
+      <p class="formula"><span class="p">película, libro, chiste</span> → <span class="f">presente</span></p>
+      <p>-ar → <span class="end">o · as · a · amos · áis · an</span> · -er/-ir → <span class="end">o · es · e · emos/imos · éis/ís · en</span></p>
+      <div class="chips">
+        <span class="chip ph" data-ins="quiere "><b>quiere</b></span>
+        <span class="chip ph" data-ins="piensa "><b>piensa</b></span>
+        <span class="chip ph" data-ins="encuentra "><b>encuentra</b></span>
+        <span class="chip ph" data-ins="vuelve "><b>vuelve</b></span>
+        <span class="chip ph" data-ins="puede "><b>puede</b></span>
+        <span class="chip ph" data-ins="recuerda "><b>recuerda</b></span>
+        <span class="chip ph" data-ins="tiene "><b>tiene</b></span>
+        <span class="chip ph" data-ins="va "><b>va</b></span>
+        <span class="chip ph" data-ins="conoce "><b>conoce</b></span>
+        <span class="chip ph" data-ins="descubre "><b>descubre</b></span>
+        <span class="chip ph" data-ins="sale "><b>sale</b></span>
+        <span class="chip ph" data-ins="dice "><b>dice</b></span>
+      </div>
+      <p class="note">⚠︎ <b>Miguel va</b> al mundo de los muertos, no <s>fue</s> (en una película, todo en presente)</p>
+    </div>
+
+    <div class="card" id="k-voc">
+      <h3>Palabras clave</h3>
+      <div class="chips">
+        <span class="chip ph" data-ins="el Día de Muertos ">el Día de Muertos</span>
+        <span class="chip ph" data-ins="el mundo de los muertos ">el mundo de los muertos</span>
+        <span class="chip ph" data-ins="el mundo de los vivos ">el mundo de los vivos</span>
+        <span class="chip ph" data-ins="la ofrenda ">la ofrenda</span>
+        <span class="chip ph" data-ins="la foto ">la foto</span>
+        <span class="chip ph" data-ins="el esqueleto ">el esqueleto</span>
+        <span class="chip ph" data-ins="la calavera ">la calavera</span>
+        <span class="chip ph" data-ins="la tumba ">la tumba</span>
+        <span class="chip ph" data-ins="la bendición ">la bendición</span>
+        <span class="chip ph" data-ins="antes del amanecer ">antes del amanecer</span>
+        <span class="chip ph" data-ins="el puente de pétalos ">el puente de pétalos</span>
+        <span class="chip ph" data-ins="el sueño ">el sueño</span>
+        <span class="chip ph" data-ins="el músico ">el músico</span>
+        <span class="chip ph" data-ins="la música ">la música</span>
+        <span class="chip ph" data-ins="la canción ">la canción</span>
+        <span class="chip ph" data-ins="los zapatos ">los zapatos</span>
+        <span class="chip ph" data-ins="recordar ">recordar</span>
+        <span class="chip ph" data-ins="olvidar ">olvidar</span>
+        <span class="chip ph" data-ins="desaparecer ">desaparecer</span>
+        <span class="chip ph" data-ins="prohibida ">prohibida</span>
+      </div>
+    </div>
+
+    <div class="card" id="k-err">
+      <h3>Lo que dijiste en clase <small>20 nov · toca la versión buena</small></h3>
+      <ul class="err">
+        <li><s>Coco es un animación</s><span class="ph" data-ins="Coco es una película de animación. ">Coco es una película de animación</span></li>
+        <li><s>un película</s><span class="ph" data-ins="una película ">una película</span></li>
+        <li><s>trata de habla de</s><span class="ph" data-ins="La película trata de ">trata de… / habla de…</span></li>
+        <li><s>Miguel fue al mundo de muertos</s><span class="ph" data-ins="Miguel va al mundo de los muertos. ">Miguel va al mundo de los muertos</span></li>
+        <li><s>a su familia no le gusta músico</s><span class="ph" data-ins="A la familia de Miguel no le gusta la música. ">A la familia de Miguel no le gusta la música</span></li>
+        <li><s>su abuelo es un músico famoso</s><span class="ph" data-ins="Miguel piensa que su tatarabuelo es un músico muy famoso. ">piensa que su tatarabuelo es…</span></li>
+        <li><s>el no quiero volver</s><span class="ph" data-ins="Él no quiere volver ">Él no quiere volver</span></li>
+        <li><s>buscar su abuelo</s><span class="ph" data-ins="porque quiere buscar a su tatarabuelo. ">quiere buscar a su tatarabuelo</span></li>
+        <li><s>el ambientada en la película</s><span class="ph" data-ins="La película está ambientada en ">La película está ambientada en…</span></li>
+        <li><s>esto no basado en un libro</s><span class="ph" data-ins="No está basada en un libro. ">No está basada en un libro</span></li>
+        <li><s>la animación es muy bonito</s><span class="ph" data-ins="La animación es muy bonita. ">La animación es muy bonita</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================= CENTRE · speaking page ================= -->
+  <div class="col" id="c-mid">
+    <div class="card" id="k-write">
+      <h2>Mi presentación: Coco</h2>
+      <p>Hablar de una película · <b>unos 10 minutos</b> · graba, escúchate y corrige lo que has dicho</p>
+      <div class="parts"><span class="pa">1 · Introducción</span><span class="pb">2 · ¿De qué va?</span><span class="pc">3 · ¿Dónde?</span><span class="pd">4 · Los personajes</span><span class="pe">5 · La historia</span><span class="pf">6 · Mi opinión</span></div>
+      <div class="rec">
+        <button class="recb" id="recBtn" type="button">🎤 Grabar</button>
+        <div class="clk"><span id="clock">0:00</span><span class="of">/ 10:00</span></div>
+      </div>
+      <div class="plan" aria-hidden="true"><i class="pa" style="flex:1"></i><i class="pb" style="flex:1.5"></i><i class="pc" style="flex:1"></i><i class="pd" style="flex:1.5"></i><i class="pe" style="flex:3.5"></i><i class="pf" style="flex:1.5"></i></div>
+      <div class="prog"><i id="prog"></i></div>
+      <p class="note" id="recSt">Pulsa 🎤 y habla: lo que dices aparece abajo y el reloj te dice en qué parte deberías estar.</p>
+      <p class="live" id="live" aria-live="polite"></p>
+      <audio id="play" controls hidden></audio>
+      <h4 class="dh">Lo que has dicho <small>puedes corregirlo · toca una frase del mapa para añadirla</small></h4>
+      <textarea id="draft" lang="es" spellcheck="false" placeholder="Aquí aparece lo que dices.&#10;&#10;También puedes escribir tu guion: ¡Hola a todos! Hoy voy a hablar de una película que me encanta…"></textarea>
+      <div class="wbar"><span class="wc" id="wc">0 palabras</span><span class="paras" id="paras"></span><span style="flex:1"></span>
+        <button class="btn" id="undoBtn" type="button" disabled>↶ Deshacer</button><button class="btn" id="clearBtn" type="button">Borrar</button><button class="btn" id="copyBtn" type="button">Copiar</button></div>
+      <p class="note">Hablando despacio, unas 75 palabras son 1 minuto. Con 600–750 palabras y las preguntas del final, llegas a 10 minutos.</p>
+    </div>
+
+    <div class="card cn" id="k-cn">
+      <h3>Conectores para contar <small>Aula 3 · unidad 4</small></h3>
+      <div class="chips">
+        <span class="chip ph" data-ins="Al principio, "><b>al principio</b><i>at first</i></span>
+        <span class="chip ph" data-ins="Un día, "><b>un día</b><i>one day</i></span>
+        <span class="chip ph" data-ins="De repente, "><b>de repente</b><i>suddenly</i></span>
+        <span class="chip ph" data-ins="De pronto, "><b>de pronto</b><i>suddenly</i></span>
+        <span class="chip ph" data-ins="Entonces, "><b>entonces</b><i>then / so</i></span>
+        <span class="chip ph" data-ins="En ese momento, "><b>en ese momento</b><i>at that moment</i></span>
+        <span class="chip ph" data-ins="Después, "><b>después</b><i>afterwards</i></span>
+        <span class="chip ph" data-ins="Al final, "><b>al final</b><i>in the end</i></span>
+        <span class="chip ph" data-ins="porque "><b>porque</b><i>because</i></span>
+        <span class="chip ph" data-ins="Como "><b>como</b><i>since (at the start)</i></span>
+        <span class="chip ph" data-ins="Por eso, "><b>por eso</b><i>that's why</i></span>
+        <span class="chip ph" data-ins="pero "><b>pero</b><i>but</i></span>
+        <span class="chip ph" data-ins="Sin embargo, "><b>sin embargo</b><i>however</i></span>
+        <span class="chip ph" data-ins="Aunque "><b>aunque</b><i>although</i></span>
+        <span class="chip ph" data-ins="En cambio, "><b>en cambio</b><i>on the other hand</i></span>
+        <span class="chip ph" data-ins="Además, "><b>además</b><i>moreover</i></span>
+      </div>
+    </div>
+
+    <div class="card" id="k-model">
+      <h3>Un modelo <small id="mWords"></small></h3>
+      <div class="mkey"><span class="st">frase de inicio</span><span class="c">conector</span><span class="vp">presente</span><span class="pn">pronombre</span></div>
+      <div class="mt">Coco: la familia y la música</div>
+      <p class="para p1"><span class="st">¡Hola a todos!</span> <span class="st">Hoy voy a hablar de una película que me encanta.</span> Se llama Coco. <span class="st">Es una película de animación de</span> Pixar, de 2017. <span class="st">¿Alguien ha visto Coco?</span> <span class="st">Elegí esta película porque</span> es muy bonita <span class="c">y</span> es fácil de entender. <span class="c">Además,</span> ganó dos premios Óscar: el Óscar a la mejor película de animación <span class="c">y</span> el Óscar a la mejor canción.</p>
+      <p class="para p2"><span class="st">La película trata de</span> un niño que se llama Miguel. Miguel <span class="vp">tiene</span> doce años <span class="c">y</span> <span class="vp">vive</span> en México con su familia. <span class="st">La historia pasa en</span> el Día de Muertos, una fiesta muy importante en México. En esta fiesta, las familias <span class="vp">recuerdan</span> a sus muertos: <span class="vp">ponen</span> sus fotos en un altar, que se llama ofrenda, con flores naranjas, comida <span class="c">y</span> velas. La gente <span class="vp">cree</span> que esa noche los muertos <span class="vp">visitan</span> a su familia. <span class="st">La película narra</span> el viaje de Miguel al mundo de los muertos. <span class="st">El tema principal es</span> la familia, <span class="c">pero</span> también la música <span class="c">y</span> la memoria.</p>
+      <p class="para p3"><span class="st">La película está ambientada en</span> México <span class="c">y</span> en el mundo de los muertos. Miguel <span class="vp">vive</span> en un pueblo pequeño que se llama Santa Cecilia. El pueblo <span class="vp">es</span> tranquilo <span class="c">y</span> tradicional. <span class="c">En cambio,</span> el mundo de los muertos <span class="vp">es</span> una ciudad enorme, con muchas luces <span class="c">y</span> muchos colores. Para llegar allí, los muertos <span class="vp">cruzan</span> un puente de pétalos naranjas. <span class="st">Es mi parte favorita porque</span> es fascinante.</p>
+      <p class="para p4"><span class="st">El protagonista es</span> Miguel. <span class="vp">Es</span> un niño valiente <span class="c">y</span> muy simpático, <span class="c">y</span> <span class="pn">le</span> encanta la música. <span class="st">Su familia es muy grande.</span> Su bisabuela se llama Mamá Coco. <span class="vp">Es</span> muy mayor <span class="c">y</span> casi no <span class="vp">recuerda</span> nada, <span class="c">pero</span> Miguel <span class="pn">la</span> <span class="vp">quiere</span> mucho. Su abuela, Elena, <span class="vp">es</span> muy estricta: no <span class="pn">le</span> gusta la música. Mamá Imelda <span class="vp">es</span> la tatarabuela de Miguel <span class="c">y</span> <span class="vp">está</span> en el mundo de los muertos. <span class="c">También</span> hay otros personajes importantes: Héctor, un esqueleto divertido <span class="c">y</span> un poco triste; Ernesto de la Cruz, el músico más famoso de México; <span class="c">y</span> Dante, el perro de Miguel, que <span class="vp">es</span> muy gracioso.</p>
+      <p class="para p5"><span class="c">Al principio,</span> Miguel <span class="vp">quiere</span> ser músico, <span class="c">pero</span> a la familia de Miguel no <span class="pn">le</span> gusta la música. ¿Por qué? <span class="c">Porque</span> hace muchos años el tatarabuelo de Miguel se fue de casa para ser músico <span class="c">y</span> nunca volvió. Desde entonces, la música <span class="vp">está</span> prohibida en su casa <span class="c">y</span> toda la familia <span class="vp">hace</span> zapatos. Miguel <span class="vp">piensa</span> que su tatarabuelo <span class="vp">es</span> Ernesto de la Cruz. El Día de Muertos, Miguel <span class="vp">quiere</span> tocar en un concurso, <span class="c">pero</span> no <span class="vp">tiene</span> guitarra, <span class="c">porque</span> su abuela <span class="pn">la</span> <span class="vp">rompe</span>. <span class="c">Entonces</span> <span class="vp">entra</span> en la tumba de Ernesto de la Cruz <span class="c">y</span> <span class="vp">coge</span> su guitarra. <span class="c">De repente,</span> cuando <span class="pn">la</span> <span class="vp">toca</span>, <span class="vp">va</span> al mundo de los muertos. Allí <span class="vp">encuentra</span> a su familia muerta. Para volver, <span class="vp">necesita</span> la bendición de un familiar antes del amanecer. Mamá Imelda <span class="pn">se la</span> <span class="vp">da</span>, <span class="c">pero</span> con una condición: nunca más música. Miguel no <span class="vp">quiere</span> volver así, <span class="c">porque</span> <span class="vp">quiere</span> buscar a su tatarabuelo. <span class="c">Entonces</span> <span class="vp">conoce</span> a Héctor, que <span class="pn">lo</span> <span class="vp">ayuda</span>. Héctor <span class="c">también</span> <span class="vp">tiene</span> un problema: si nadie <span class="pn">lo</span> <span class="vp">recuerda</span>, va a desaparecer para siempre. <span class="c">Después,</span> Miguel <span class="vp">descubre</span> la verdad: Ernesto de la Cruz <span class="vp">es</span> un mentiroso; mató a Héctor <span class="c">y</span> <span class="pn">le</span> robó sus canciones. ¡<span class="c">Y</span> Héctor <span class="vp">es</span> su tatarabuelo! <span class="c">Al final,</span> Miguel <span class="vp">vuelve</span> a casa <span class="c">y</span> <span class="pn">le</span> <span class="vp">canta</span> a Mamá Coco la canción «Recuérdame». <span class="c">En ese momento,</span> Mamá Coco <span class="vp">recuerda</span> a su padre, Héctor. Toda la familia <span class="pn">lo</span> <span class="vp">entiende</span> <span class="c">y</span>, por fin, la música <span class="vp">vuelve</span> a la casa.</p>
+      <p class="para p6"><span class="st">En mi opinión,</span> Coco es una película preciosa. <span class="st">Lo que más me gusta es</span> la animación: es muy bonita <span class="c">y</span> tiene muchos colores. La música <span class="c">también</span> es fascinante. <span class="st">No está basada en un libro,</span> es una historia original, <span class="c">pero</span> habla de una tradición real. <span class="c">Aunque</span> es una película para niños, <span class="c">también</span> es para adultos, <span class="c">porque</span> habla de la muerte <span class="c">y</span> de la familia. <span class="st">La película nos enseña que</span> es importante recordar a las personas que queremos. <span class="c">Por eso,</span> <span class="pn">os la</span> recomiendo a todos. ¡Pero cuidado: vais a llorar! <span class="st">Muchas gracias. ¿Tenéis alguna pregunta?</span></p>
+    </div>
+
+    <div class="card mold" id="k-mold">
+      <h3>El esqueleto <small>toca una línea, rellena los ___</small></h3>
+      <h4 style="color:var(--in)">1 · Introducción</h4>
+      <div class="ph" data-ins="¡Hola a todos! Hoy voy a hablar de una película que me encanta. Se llama ___. Es una película de ___ de ___. Elegí esta película porque ___. ">¡Hola a todos! Hoy voy a hablar de una película que me encanta. Se llama <u>___</u>. Es una película de <u>___</u> de <u>___</u>. Elegí esta película porque <u>___</u>.</div>
+      <h4 style="color:var(--pr)">2 · ¿De qué va?</h4>
+      <div class="ph" data-ins="La película trata de ___ que se llama ___. Vive en ___. La historia pasa en ___. La película narra ___. El tema principal es ___. ">La película trata de <u>___</u> que se llama <u>___</u>. Vive en <u>___</u>. La historia pasa en <u>___</u>. La película narra <u>___</u>. El tema principal es <u>___</u>.</div>
+      <h4 style="color:var(--so)">3 · ¿Dónde?</h4>
+      <div class="ph" data-ins="La película está ambientada en ___ y en ___. El pueblo es ___. En cambio, el mundo de los muertos es ___. Es mi parte favorita porque ___. ">La película está ambientada en <u>___</u> y en <u>___</u>. El pueblo es <u>___</u>. En cambio, el mundo de los muertos es <u>___</u>. Es mi parte favorita porque <u>___</u>.</div>
+      <h4 style="color:var(--co)">4 · Los personajes</h4>
+      <div class="ph" data-ins="El protagonista es ___. Es un niño ___ y ___. Su familia es muy grande: ___. También hay otros personajes: ___. ">El protagonista es <u>___</u>. Es un niño <u>___</u> y <u>___</u>. Su familia es muy grande: <u>___</u>. También hay otros personajes: <u>___</u>.</div>
+      <h4 style="color:var(--hi)">5 · La historia</h4>
+      <div class="ph" data-ins="Al principio, Miguel quiere ___, pero a la familia de Miguel no le gusta ___ porque ___. Miguel piensa que ___. ">Al principio, Miguel quiere <u>___</u>, pero a la familia de Miguel no le gusta <u>___</u> porque <u>___</u>. Miguel piensa que <u>___</u>.</div>
+      <div class="ph" data-ins="Un día, ___. De repente, ___. Allí ___. Miguel no quiere volver porque ___. Entonces conoce a ___. ">Un día, <u>___</u>. De repente, <u>___</u>. Allí <u>___</u>. Miguel no quiere volver porque <u>___</u>. Entonces conoce a <u>___</u>.</div>
+      <div class="ph" data-ins="Después, Miguel descubre que ___. Al final, ___. En ese momento, ___. ">Después, Miguel descubre que <u>___</u>. Al final, <u>___</u>. En ese momento, <u>___</u>.</div>
+      <h4 style="color:var(--op)">6 · Mi opinión</h4>
+      <div class="ph" data-ins="En mi opinión, ___. Lo que más me gusta es ___. Aunque ___, ___. La película nos enseña que ___. Por eso, os la recomiendo. Muchas gracias. ¿Tenéis alguna pregunta? ">En mi opinión, <u>___</u>. Lo que más me gusta es <u>___</u>. Aunque <u>___</u>, <u>___</u>. La película nos enseña que <u>___</u>. Por eso, os la recomiendo. Muchas gracias. ¿Tenéis alguna pregunta?</div>
+    </div>
+  </div>
+
+  <!-- ================= RIGHT · parts 4–6 ================= -->
+  <div class="col" id="c-right">
+    <div class="card co" id="k-pers">
+      <div class="sec"><span class="kick">Parte 4 · ~1,5 min</span><h2>Los personajes</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="El protagonista es Miguel, un niño de doce años. ">El protagonista es…, un niño de… años.</li>
+        <li class="ph" data-ins="Es un niño valiente y muy simpático. ">Es un niño valiente y…</li>
+        <li class="ph" data-ins="Le encanta la música. ">Le encanta…</li>
+        <li class="ph" data-ins="Su familia es muy grande. ">Su familia es muy grande.</li>
+        <li class="ph" data-ins="Su bisabuela se llama Mamá Coco. ">Su bisabuela / abuela se llama…</li>
+        <li class="ph" data-ins="También hay otros personajes importantes: ">También hay otros personajes importantes:</li>
+        <li class="ph" data-ins="Mi personaje favorito es Héctor porque ">Mi personaje favorito es… porque…</li>
+      </ul>
+    </div>
+
+    <div class="card hi" id="k-hist">
+      <div class="sec"><span class="kick">Parte 5 · ~3,5 min · en presente</span><h2>La historia</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="Al principio, Miguel quiere ser músico, ">Al principio, Miguel quiere ser…</li>
+        <li class="ph" data-ins="pero a la familia de Miguel no le gusta la música. ">pero a la familia de Miguel no le gusta…</li>
+        <li class="ph" data-ins="Miguel piensa que su tatarabuelo es Ernesto de la Cruz. ">Miguel piensa que su tatarabuelo es…</li>
+        <li class="ph" data-ins="El Día de Muertos, Miguel ">El Día de Muertos, Miguel…</li>
+        <li class="ph" data-ins="De repente, va al mundo de los muertos. ">De repente, va al mundo de los muertos.</li>
+        <li class="ph" data-ins="Allí encuentra a su familia muerta. ">Allí encuentra a…</li>
+        <li class="ph" data-ins="Para volver, necesita la bendición de un familiar antes del amanecer. ">Para volver, necesita…</li>
+        <li class="ph" data-ins="Miguel no quiere volver porque quiere buscar a su tatarabuelo. ">Miguel no quiere volver porque quiere buscar a…</li>
+        <li class="ph" data-ins="Entonces conoce a Héctor, que lo ayuda. ">Entonces conoce a…, que lo ayuda.</li>
+        <li class="ph" data-ins="Después, Miguel descubre la verdad: ">Después, Miguel descubre la verdad:</li>
+        <li class="ph" data-ins="Al final, Miguel vuelve a casa y ">Al final, Miguel vuelve a casa y…</li>
+      </ul>
+    </div>
+
+    <div class="card gr" id="k-pron">
+      <h3>Pronombres <small>para no repetir · Aula 3 · unidad 4</small></h3>
+      <div class="grow2">
+        <b>lo · la · los · las</b><span>la persona o cosa (OD): Miguel <b>la</b> quiere = a Mamá Coco</span>
+        <b>le · les</b><span>a quién (OI): <b>le</b> canta = a Mamá Coco</span>
+        <b>se lo · se la</b><span>le + la → <b>se la</b> da (la bendición, a Miguel)</span>
+      </div>
+      <p class="formula"><span class="p">antes del verbo</span> · <span class="f">o pegado al infinitivo</span></p>
+      <div class="chips">
+        <span class="chip ph" data-ins="no le gusta "><b>no le gusta</b></span>
+        <span class="chip ph" data-ins="le encanta "><b>le encanta</b></span>
+        <span class="chip ph" data-ins="lo ayuda "><b>lo ayuda</b></span>
+        <span class="chip ph" data-ins="la rompe "><b>la rompe</b></span>
+        <span class="chip ph" data-ins="la recuerda "><b>la recuerda</b></span>
+        <span class="chip ph" data-ins="quiere buscarlo "><b>quiere buscarlo</b></span>
+        <span class="chip ph" data-ins="se la da "><b>se la da</b></span>
+        <span class="chip ph" data-ins="os la recomiendo "><b>os la recomiendo</b></span>
+      </div>
+      <p class="note">⚠︎ <b>A la familia de Miguel no le gusta la música</b>: gusta + la cosa, le = la persona</p>
+    </div>
+
+    <div class="card op" id="k-op">
+      <div class="sec"><span class="kick">Parte 6 · ~1,5 min</span><h2>Mi opinión</h2></div>
+      <ul class="ls">
+        <li class="ph" data-ins="En mi opinión, ">En mi opinión, …</li>
+        <li class="ph" data-ins="Lo que más me gusta es ">Lo que más me gusta es…</li>
+        <li class="ph" data-ins="La animación es muy bonita y tiene muchos colores. ">La animación es muy bonita y tiene muchos colores.</li>
+        <li class="ph" data-ins="La música es fascinante. ">La música es fascinante.</li>
+        <li class="ph" data-ins="No está basada en un libro, es una historia original. ">No está basada en un libro, es una historia original.</li>
+        <li class="ph" data-ins="Aunque es una película para niños, también es para adultos. ">Aunque es para niños, también es para adultos.</li>
+        <li class="ph" data-ins="La película nos enseña que ">La película nos enseña que…</li>
+        <li class="ph" data-ins="Os la recomiendo porque ">Os la recomiendo porque…</li>
+        <li class="ph" data-ins="Muchas gracias. ¿Tenéis alguna pregunta? ">Muchas gracias. ¿Tenéis alguna pregunta?</li>
+      </ul>
+    </div>
+
+    <div class="card qs" id="k-q">
+      <h3>Preguntas <small>te las pueden hacer · también sirven para preparar</small></h3>
+      <ul class="ls">
+        <li class="ph" data-ins="¿De qué va la película? ">¿De qué va la película?</li>
+        <li class="ph" data-ins="¿Dónde está ambientada? ">¿Dónde está ambientada?</li>
+        <li class="ph" data-ins="¿Quién es el protagonista? ">¿Quién es el protagonista?</li>
+        <li class="ph" data-ins="¿Qué quiere Miguel? ">¿Qué quiere Miguel?</li>
+        <li class="ph" data-ins="¿Por qué no le gusta la música a su familia? ">¿Por qué no le gusta la música a su familia?</li>
+        <li class="ph" data-ins="¿Quién es Héctor? ">¿Quién es Héctor?</li>
+        <li class="ph" data-ins="¿Cómo termina la película? ">¿Cómo termina?</li>
+        <li class="ph" data-ins="¿Cuál es tu personaje favorito? ">¿Cuál es tu personaje favorito?</li>
+        <li class="ph" data-ins="¿Qué nos enseña la película? ">¿Qué nos enseña la película?</li>
+        <li class="ph" data-ins="¿A quién se la recomiendas? ">¿A quién se la recomiendas?</li>
+        <li class="ph" data-ins="¿Hay una fiesta parecida en Turquía? ">¿Hay una fiesta parecida en Turquía?</li>
+      </ul>
+    </div>
+
+    <div class="card" id="k-check">
+      <h3>Antes de hablar</h3>
+      <ul class="checks">
+        <li>Las 6 partes, en orden</li>
+        <li>Todo en <b>presente</b>: quiere, va, conoce, vuelve</li>
+        <li><b>trata de · está ambientada en · el protagonista es</b></li>
+        <li>5 conectores: al principio, de repente, entonces, al final, aunque</li>
+        <li><b>una</b> película · la animación es bonit<b>a</b></li>
+        <li>Practica en voz alta con reloj: ~10 minutos</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="nav">
+  <div class="go" id="go">
+    <button type="button" data-go="all">Todo</button>
+    <button type="button" data-go="k-write" data-k="w">Mi presentación</button>
+    <button type="button" data-go="info" data-k="hi">Coco</button>
+    <button type="button" data-go="k-in" data-k="in">1 · Intro</button>
+    <button type="button" data-go="k-tema" data-k="pr">2 · ¿De qué va?</button>
+    <button type="button" data-go="k-amb" data-k="so">3 · ¿Dónde?</button>
+    <button type="button" data-go="k-pers" data-k="co">4 · Personajes</button>
+    <button type="button" data-go="k-hist" data-k="hi">5 · Historia</button>
+    <button type="button" data-go="k-op" data-k="op">6 · Opinión</button>
+    <button type="button" data-go="k-pres" data-k="gr">Presente</button>
+    <button type="button" data-go="k-pron" data-k="gr">Pronombres</button>
+    <button type="button" data-go="k-cn" data-k="cn">Conectores</button>
+    <button type="button" data-go="k-miss" data-k="hi">Lo que falta</button>
+    <button type="button" data-go="k-err">Mis errores</button>
+    <button type="button" data-go="k-q">Preguntas</button>
+    <button type="button" data-go="k-model">Modelo</button>
+  </div>
+  <div class="zoom"><button class="btn" id="zo" type="button" aria-label="Alejar">−</button><button class="btn" id="zi" type="button" aria-label="Acercar">+</button></div>
+</div>
+
+<div class="help" id="help"><p><b>Dos dedos</b> para mover el mapa y hacer zoom. <b>Un dedo</b> para tocar: una frase va a tu texto.</p><button class="btn" id="helpOk" type="button">Vale</button></div>
+<div class="toast" id="toast"></div>
+<div class="two" id="two" aria-hidden="true"><p><span>✌︎</span>Usa dos dedos para mover el mapa</p></div>
+
+<script>
+(function(){
+const view=document.getElementById('view'), board=document.getElementById('board');
+const MIN=0.1, MAX=2.6;
+let s=1, x=0, y=0, anim=null, settleT=null;
+
+function apply(){
+  board.style.transform=`translate(${x}px,${y}px) scale(${s})`;
+  board.classList.add('moving');
+  clearTimeout(settleT);
+  settleT=setTimeout(()=>board.classList.remove('moving'),180); // re-rasterise text crisply at rest
+}
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function zoomAt(f,cx,cy){ const ns=clamp(s*f,MIN,MAX); f=ns/s; x=cx-(cx-x)*f; y=cy-(cy-y)*f; s=ns; apply(); }
+function stopAnim(){ if(anim){cancelAnimationFrame(anim);anim=null;} }
+
+function insets(){
+  const t=document.querySelector('.top').getBoundingClientRect().bottom;
+  const b=document.querySelector('.nav').getBoundingClientRect().height;
+  return {t:t+16,b:b+16,l:16,r:16};
+}
+function worldRect(el){            // layout position, independent of the current zoom
+  let x0=0,y0=0,n=el;
+  while(n && n!==board){ x0+=n.offsetLeft; y0+=n.offsetTop; n=n.offsetParent; }
+  return {x:x0, y:y0, w:el.offsetWidth, h:el.offsetHeight};
+}
+function fitTarget(r,maxS,topW){
+  const vr=view.getBoundingClientRect(), i=insets(), aw=vr.width-i.l-i.r, ah=vr.height-i.t-i.b;
+  const ns=clamp(topW?Math.min(aw/r.w,maxS):Math.min(aw/r.w,ah/r.h,maxS),MIN,MAX);
+  return {s:ns, x:i.l+(aw-r.w*ns)/2-r.x*ns, y:(r.h*ns>ah ? i.t : i.t+(ah-r.h*ns)/2)-r.y*ns};
+}
+function flyTo(t,ms=650){
+  stopAnim();
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) ms=0;
+  const s0=s,x0=x,y0=y,t0=performance.now(), ease=k=>1-Math.pow(1-k,3);
+  (function step(now){
+    const k=ms?Math.min(1,((now||t0)-t0)/ms):1, e=ease(k);
+    s=Math.exp(Math.log(s0)+(Math.log(t.s)-Math.log(s0))*e); x=x0+(t.x-x0)*e; y=y0+(t.y-y0)*e; apply();
+    anim=k<1?requestAnimationFrame(step):null;
+  })();
+}
+function goAll(ms){ flyTo(fitTarget({x:0,y:0,w:board.offsetWidth,h:board.offsetHeight},1),ms); }
+function goEl(id,ms){
+  if(id==='all') return goAll(ms);
+  const el=document.getElementById(id); if(!el) return;
+  const tall=id==='k-write'||id==='info'||id==='k-model';
+  flyTo(fitTarget(worldRect(el), id==='k-write'?0.85:1.2, tall), ms);
+}
+
+/* ---- gestures ----
+   Touch and pencil: one finger only taps; two fingers pan and pinch (like FigJam, tldraw or a Google Map
+   embedded in a page), so the map never moves by accident. Mouse: drag pans. Trackpad: scroll pans, pinch zooms. */
+const pts=new Map(); let last=null, moved=0, vel={x:0,y:0}, lastT=0, pinch=null, hinted=false;
+const two=document.getElementById('two'); let twoT;
+let twoSeen=false; try{ twoSeen=!!localStorage.getItem('coco-two'); }catch(_){}
+function hintTwo(){ if(twoSeen) return; twoSeen=true; try{localStorage.setItem('coco-two','1');}catch(_){} two.classList.add('on'); clearTimeout(twoT); twoT=setTimeout(()=>two.classList.remove('on'),1300); }
+let inField=false;
+view.addEventListener('pointerdown',e=>{
+  if(pts.size>=2) return;                                  // ignore a palm or third finger
+  // a finger on the text or a button still counts for a two-finger pinch, but is not captured,
+  // so a single tap keeps placing the cursor or pressing the button as usual
+  const field=!!e.target.closest('textarea,button');
+  if(field && e.pointerType==='mouse') return;
+  stopAnim();
+  if(!field){ try{ view.setPointerCapture(e.pointerId); }catch(_){} }
+  if(pts.size===0) inField=field;
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
+  if(e.pointerType!=='mouse') lastTouch=performance.now();
+  if(pts.size===1){ last={x:e.clientX,y:e.clientY}; moved=0; hinted=false; vel={x:0,y:0}; lastT=performance.now(); }
+  if(pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};
+    moved=99; hinted=true; vel={x:0,y:0}; lastT=performance.now(); two.classList.remove('on'); }
+  if(e.pointerType==='mouse') view.classList.add('grabbing');
+});
+addEventListener('pointermove',e=>{
+  const p=pts.get(e.pointerId); if(!p) return;
+  p.x=e.clientX; p.y=e.clientY;
+  const now=performance.now(), dt=Math.max(1,now-lastT);
+  if(pts.size===2 && pinch){
+    const [a,b]=[...pts.values()], d=Math.hypot(a.x-b.x,a.y-b.y), cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
+    const dx=cx-pinch.cx, dy=cy-pinch.cy;
+    x+=dx; y+=dy;
+    zoomAt(d/pinch.d,cx,cy);   // #view is fixed at 0,0: no layout read per frame
+    vel={x:.8*vel.x+.2*dx/dt*16, y:.8*vel.y+.2*dy/dt*16}; lastT=now;
+    pinch={d,cx,cy};
+  } else if(pts.size===1 && last){
+    const dx=e.clientX-last.x, dy=e.clientY-last.y;
+    moved+=Math.abs(dx)+Math.abs(dy);
+    last={x:e.clientX,y:e.clientY};
+    if(p.type==='mouse'){
+      x+=dx; y+=dy; apply();
+      vel={x:.8*vel.x+.2*dx/dt*16, y:.8*vel.y+.2*dy/dt*16}; lastT=now;
+    } else if(moved>14 && !hinted && !inField){ hinted=true; hintTwo(); }
+  }
+});
+function up(e){
+  if(!pts.has(e.pointerId)) return;
+  pts.delete(e.pointerId);
+  if(pts.size===1){                                        // one finger of a pinch lifted: stop, don't pan
+    pinch=null; const q=[...pts.values()][0]; last={x:q.x,y:q.y}; return;
+  }
+  if(pts.size===0){
+    pinch=null; view.classList.remove('grabbing');
+  }
+}
+addEventListener('pointerup',up); addEventListener('pointercancel',up);
+function glide(){ stopAnim(); (function step(){ vel.x*=.93; vel.y*=.93; x+=vel.x; y+=vel.y; apply();
+  anim=Math.hypot(vel.x,vel.y)>.3?requestAnimationFrame(step):null; })(); }
+/* Trackpad and mouse wheel. Chrome, Edge and Firefox send a trackpad pinch as ctrl+wheel; scroll pans.
+   ZOOM_SPEED 0.02 = twice the browser's own pinch rate, which felt sluggish on a big board.
+   Line and page deltas (some mice) become pixels; one wheel notch is capped so a mouse doesn't jump. */
+const ZOOM_SPEED=0.02;
+let gs=null, lastTouch=-1e9;
+view.addEventListener('wheel',e=>{
+  e.preventDefault(); stopAnim();
+  if(gs!==null) return;                                    // Safari pinch in progress: the gesture events zoom
+  const k=e.deltaMode===1?16:e.deltaMode===2?view.clientHeight:1;
+  if(e.ctrlKey||e.metaKey) zoomAt(Math.exp(-clamp(e.deltaY*k,-20,20)*ZOOM_SPEED),e.clientX,e.clientY);
+  else { x-=e.deltaX*k; y-=e.deltaY*k; apply(); }
+},{passive:false});
+/* Safari on the Mac (and an iPad with a trackpad) sends a pinch as gesturestart/change/end with a cumulative
+   scale, not as ctrl+wheel. On a touch screen the pointer code already handles the pinch, so a gesture that
+   comes with or right after a finger is ignored (otherwise iPad and iPhone would zoom twice). */
+document.addEventListener('gesturestart',e=>{ e.preventDefault(); if(pts.size||performance.now()-lastTouch<800) return; stopAnim(); gs=e.scale||1; });
+document.addEventListener('gesturechange',e=>{ e.preventDefault(); if(gs===null) return; const sc=e.scale||1; zoomAt(Math.pow(sc/gs,1.4),e.clientX,e.clientY); gs=sc; });
+document.addEventListener('gestureend',e=>{ e.preventDefault(); gs=null; });
+function zoomCenter(f){ const vr=view.getBoundingClientRect(), ns=clamp(s*f,MIN,MAX);
+  flyTo({s:ns, x:vr.width/2-(vr.width/2-x)*ns/s, y:vr.height/2-(vr.height/2-y)*ns/s},300); }
+document.getElementById('zi').onclick=()=>zoomCenter(1.5);
+document.getElementById('zo').onclick=()=>zoomCenter(1/1.5);
+
+// the board moves only by transform; never let the browser scroll the container (hash links, focus)
+const unscroll=()=>{ if(view.scrollTop||view.scrollLeft){ view.scrollTop=0; view.scrollLeft=0; } };
+view.addEventListener('scroll',unscroll);
+
+/* ---- taps ---- */
+view.addEventListener('click',e=>{
+  if(moved>8) return;                                   // that was a drag
+  const ph=e.target.closest('.ph');
+  if(ph){ insert(ph.dataset.ins||ph.textContent.trim()+' '); ph.classList.add('flash'); setTimeout(()=>ph.classList.remove('flash'),400); return; }
+  const card=e.target.closest('.card');
+  if(card && card.id!=='k-write') flyTo(fitTarget(worldRect(card),1.2));
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.nav [data-go], .top [data-go]'); if(b) goEl(b.dataset.go);
+});
+
+/* ---- the writing page ---- */
+const draft=document.getElementById('draft'), wc=document.getElementById('wc'), paras=document.getElementById('paras'), undoBtn=document.getElementById('undoBtn');
+const KEY='coco-draft', WORD=/[A-Za-zÀ-ÿ0-9₂]+(?:['’-][A-Za-zÀ-ÿ]+)*/g;
+try{ draft.value=localStorage.getItem(KEY)||''; }catch(_){}
+function grow(){ draft.style.height='auto'; draft.style.height=Math.max(700,draft.scrollHeight+40)+'px'; }
+function refresh(){
+  const n=(draft.value.match(WORD)||[]).length;
+  const m=Math.round(n/75*60);                               // ~75 words a minute, speaking slowly
+  wc.textContent=n+' palabras · ≈ '+Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+' min';
+  wc.className='wc'+(n>=600&&n<=800?' ok':n>800?' over':'');
+  const p=draft.value.split(/\n\s*\n/).filter(t=>t.trim()).length;
+  paras.textContent=p?p+(p===1?' párrafo':' párrafos'):'';
+  grow();
+  try{localStorage.setItem(KEY,draft.value);}catch(_){}
+}
+draft.addEventListener('input',refresh);
+let caret=null; const undo=[];
+draft.addEventListener('blur',()=>{ caret=[draft.selectionStart,draft.selectionEnd]; });
+function insert(txt){
+  const v=draft.value;
+  const [a,b]=document.activeElement===draft?[draft.selectionStart,draft.selectionEnd]:(caret||[v.length,v.length]);
+  const before=v.slice(0,a), after=v.slice(b);
+  if(before && !/\s$/.test(before)) txt=' '+txt;
+  undo.push(v); if(undo.length>30) undo.shift(); undoBtn.disabled=false;
+  draft.value=before+txt+after;
+  const pos=(before+txt).length; caret=[pos,pos];
+  if(document.activeElement===draft) draft.setSelectionRange(pos,pos);
+  refresh(); toast('→ '+txt.trim());
+}
+undoBtn.onclick=()=>{ if(!undo.length) return; draft.value=undo.pop(); caret=null; refresh(); undoBtn.disabled=!undo.length; toast('Deshecho'); };
+document.getElementById('copyBtn').onclick=async()=>{
+  try{ await navigator.clipboard.writeText(draft.value); toast('Texto copiado'); }
+  catch(_){ draft.focus(); draft.select(); toast('Selecciona y copia'); }
+};
+
+/* ---- the recorder: speak, see the words appear, watch the 10-minute clock ----
+   Speech-to-text is the browser's own (Web Speech API: Chrome, Edge, Safari; on iPad it needs Siri/Dictation on).
+   The audio is also recorded with MediaRecorder so she can listen back. Nothing leaves the device but what the
+   browser's speech service needs; the audio blob stays in memory only. */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const recBtn=document.getElementById('recBtn'), clock=document.getElementById('clock'), prog=document.getElementById('prog'),
+      recSt=document.getElementById('recSt'), live=document.getElementById('live'), play=document.getElementById('play'),
+      chips=[...document.querySelectorAll('#k-write .parts span')];
+const PLAN=[1,1.5,1,1.5,3.5,1.5];                            // minutes per part, = 10
+const GOAL=600;                                              // seconds
+let recOn=false, sr=null, mr=null, stream=null, chunks=[], t0=0, tickT=null, takeWords=0, audioURL=null;
+if(!SR) recSt.textContent='Este navegador no escribe lo que dices (prueba Chrome o Safari). Puedes grabar y escucharte igual.';
+const fmt=sec=>Math.floor(sec/60)+':'+String(Math.floor(sec%60)).padStart(2,'0');
+function tick(){
+  const sec=(performance.now()-t0)/1000;
+  clock.textContent=fmt(sec);
+  prog.style.width=Math.min(100,sec/GOAL*100)+'%';
+  clock.parentElement.classList.toggle('over',sec>GOAL);
+  let acc=0, cur=PLAN.length-1;
+  for(let i=0;i<PLAN.length;i++){ acc+=PLAN[i]*60; if(sec<acc){cur=i;break;} }
+  chips.forEach((c,i)=>c.classList.toggle('now',i===cur));
+}
+function appendSpoken(t){
+  t=t.trim(); if(!t) return;
+  t=t.charAt(0).toUpperCase()+t.slice(1);
+  if(!/[.!?…]$/.test(t)) t+='.';
+  const v=draft.value; draft.value=v+(v && !/\s$/.test(v)?' ':'')+t+' ';
+  takeWords+=(t.match(WORD)||[]).length; refresh();
+}
+function startSR(){
+  if(!SR) return;
+  sr=new SR(); sr.lang='es-ES'; sr.continuous=true; sr.interimResults=true;
+  sr.onresult=e=>{ let tmp='';
+    for(let i=e.resultIndex;i<e.results.length;i++){ const r=e.results[i]; if(r.isFinal) appendSpoken(r[0].transcript); else tmp+=r[0].transcript; }
+    live.textContent=tmp; };
+  sr.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed') recSt.textContent='Sin permiso para escribir lo que dices: activa el micrófono (y en el iPad, Siri y Dictado).'; };
+  sr.onend=()=>{ live.textContent=''; if(recOn){ try{ sr.start(); }catch(_){} } };   // Safari and Chrome stop after a pause
+  try{ sr.start(); }catch(_){}
+}
+async function startRec(){
+  undo.push(draft.value); if(undo.length>30) undo.shift(); undoBtn.disabled=false;
+  if(draft.value.trim()) draft.value=draft.value.replace(/\s*$/,'')+'\n\n';
+  takeWords=0; recOn=true; recBtn.classList.add('on'); recBtn.textContent='■ Parar';
+  recSt.textContent='Te escucho… habla despacio y claro.';
+  t0=performance.now(); tick(); tickT=setInterval(tick,250);
+  startSR();
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    if(!recOn){ stream.getTracks().forEach(t=>t.stop()); return; }
+    chunks=[]; mr=new MediaRecorder(stream);
+    mr.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+    mr.onstop=()=>{ if(audioURL) URL.revokeObjectURL(audioURL); audioURL=URL.createObjectURL(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}));
+      play.src=audioURL; play.hidden=false; };
+    mr.start();
+  }catch(_){ if(!SR){ recSt.textContent='No hay acceso al micrófono.'; stopRec(); } }
+}
+function stopRec(){
+  if(!recOn) return; recOn=false;
+  const sec=(performance.now()-t0)/1000; clearInterval(tickT);
+  try{ sr&&sr.stop(); }catch(_){} try{ mr&&mr.state!=='inactive'&&mr.stop(); }catch(_){} if(stream) stream.getTracks().forEach(t=>t.stop());
+  recBtn.classList.remove('on'); recBtn.textContent='🎤 Grabar otra vez';
+  chips.forEach(c=>c.classList.remove('now'));
+  setTimeout(()=>{ const wpm=sec>5?Math.round(takeWords/(sec/60)):0;
+    recSt.textContent='Has hablado '+fmt(sec)+(SR?' · '+takeWords+' palabras · '+wpm+' palabras por minuto':'')+(sec<GOAL?' · faltan '+fmt(GOAL-sec)+' para 10 min':' · ¡10 minutos! ✓');
+  },600);
+}
+recBtn.onclick=()=>{ recOn?stopRec():startRec(); };
+document.getElementById('clearBtn').onclick=()=>{ if(!draft.value) return; undo.push(draft.value); undoBtn.disabled=false; draft.value=''; caret=null; refresh(); toast('Borrado · ↶ para recuperarlo'); };
+
+let tt; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1400); }
+
+/* model word count */
+(function(){ const txt=[...document.querySelectorAll('#k-model .mt, #k-model .para')].map(e=>e.textContent).join(' ');
+  document.getElementById('mWords').textContent=(txt.match(WORD)||[]).length+' palabras'; })();
+
+/* help */
+const help=document.getElementById('help');
+try{ if(localStorage.getItem('coco-help')) help.hidden=true; }catch(_){}
+document.getElementById('helpOk').onclick=()=>{ help.hidden=true; try{localStorage.setItem('coco-help','1');}catch(_){} };
+
+/* start on the whole map; re-fit once fonts load unless she has already moved */
+function start(){ unscroll(); refresh(); const id=location.hash.slice(1); if(id&&document.getElementById(id)) goEl(id,0); else goAll(0); }
+let touched=false; view.addEventListener('pointerdown',()=>touched=true,{once:true});
+const again=()=>{ if(!touched) start(); };
+start(); addEventListener('load',again);
+if(document.fonts){ document.fonts.ready.then(again); document.fonts.addEventListener('loadingdone',again); }
+let rz; addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(()=>{ if(!pts.size && !touched) goAll(300); },250); });
+})();
+</script>
+</body></html>
+
+</body></html>
