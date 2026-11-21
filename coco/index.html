@@ -983,7 +983,7 @@ function showFixes(t,online,full){
 }
 fixBtn.onclick=async()=>{
   const t=draft.value; if(!t.trim()){ toast('Primero graba o escribe algo'); return; }
-  fixBtn.disabled=true; fixBtn.textContent='Corrigiendo…';
+  fixBtn.disabled=true; fixBtn.textContent='Corrigiendo… (unos 20 segundos)';
   const ai=await aiFixes(t);
   const lt=ai?[]:await ltFixes(t);                // the grammar checker only when Claude can't be reached
   fixSrc=t; fixes=merge([...(ai||[]),...ruleFixes(t),...(lt||[])]);
