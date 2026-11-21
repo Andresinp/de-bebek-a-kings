@@ -949,7 +949,7 @@ async function ltFixes(t){
 }
 /* Claude, through the Supabase function ../supabase/functions/corregir: tenses, articles, ser/estar,
    personal a, subjunctive… everything rules can't judge. Empty URL = not deployed yet. */
-const FN_URL='';
+const FN_URL='https://harjybveicpnqhlkeezk.supabase.co/functions/v1/corregir';
 async function aiFixes(t){
   if(!FN_URL) return null;
   const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),60000);
