@@ -949,11 +949,18 @@ async function ltFixes(t){
 /* Claude, through the Supabase function ../supabase/functions/corregir: tenses, articles, ser/estar,
    personal a, subjunctive… everything rules can't judge. Empty URL = not deployed yet. */
 const FN_URL='https://harjybveicpnqhlkeezk.supabase.co/functions/v1/corregir';
+// Who is speaking and about what: the function corrects any student, this tells it the task and the facts.
+const FIX_CONTEXT=`Estudiante: Eda, turca, nivel B1 (Aula Internacional 3, unidad 4), español de España.
+Tarea: presentación oral de unos 10 minutos sobre la película Coco (Pixar, 2017). El argumento se cuenta en presente.
+Datos: Miguel, 12 años, vive en Santa Cecilia (México); su familia hace zapatos y la música está prohibida.
+Mamá Coco es su bisabuela; Mamá Imelda y Héctor son sus tatarabuelos; su abuela es Elena.
+Ernesto de la Cruz es el músico famoso que Miguel cree su tatarabuelo; en realidad mató a Héctor y le robó las canciones.
+Dante es su perro. Miguel necesita la bendición de un familiar antes del amanecer. La canción es «Recuérdame».`;
 async function aiFixes(t){
   if(!FN_URL) return null;
   const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),60000);
   try{
-    const r=await fetch(FN_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:t}),signal:ctl.signal});
+    const r=await fetch(FN_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:t,context:FIX_CONTEXT}),signal:ctl.signal});
     if(!r.ok){ console.warn('corregir: HTTP',r.status); return null; }
     const d=await r.json(); if(!Array.isArray(d.corrections)) return null;
     const out=[]; let from=0;                    // place each piece in order; fall back to the first occurrence
