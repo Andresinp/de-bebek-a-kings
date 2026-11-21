@@ -631,7 +631,6 @@ ul,ol{margin:0;padding:0;list-style:none}
   <div class="zoom"><button class="btn" id="zo" type="button" aria-label="Alejar">−</button><button class="btn" id="zi" type="button" aria-label="Acercar">+</button></div>
 </div>
 
-<div class="help" id="help"><p><b>Dos dedos</b> para mover el mapa y hacer zoom. <b>Un dedo</b> para tocar: una frase va a tu texto.</p><button class="btn" id="helpOk" type="button">Vale</button></div>
 <div class="toast" id="toast"></div>
 <div class="two" id="two" aria-hidden="true"><p><span>✌︎</span>Usa dos dedos para mover el mapa</p></div>
 
@@ -1004,10 +1003,6 @@ let tt; function toast(m){ const t=document.getElementById('toast'); t.textConte
 (function(){ const txt=[...document.querySelectorAll('#k-model .mt, #k-model .para')].map(e=>e.textContent).join(' ');
   document.getElementById('mWords').textContent=(txt.match(WORD)||[]).length+' palabras'; })();
 
-/* help */
-const help=document.getElementById('help');
-try{ if(localStorage.getItem('coco-help')) help.hidden=true; }catch(_){}
-document.getElementById('helpOk').onclick=()=>{ help.hidden=true; try{localStorage.setItem('coco-help','1');}catch(_){} };
 
 /* start on the whole map; re-fit once fonts load unless she has already moved */
 function start(){ unscroll(); refresh(); const id=location.hash.slice(1); if(id&&document.getElementById(id)) goEl(id,0); else goAll(0); }
